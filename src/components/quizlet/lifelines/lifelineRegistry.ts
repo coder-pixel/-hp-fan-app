@@ -36,4 +36,11 @@ export const lifelineRegistry: Record<LifelineId, LifelineDefinition> = {
     icon: "Sparkles",
     maxUsagePerGame: 1,
   },
+  freezeTime: {
+    id: "freezeTime",
+    displayName: "Time Freeze",
+    description: "Pause the countdown for 5 seconds.",
+    icon: "Snowflake",
+    maxUsagePerGame: 1,
+  },
 };

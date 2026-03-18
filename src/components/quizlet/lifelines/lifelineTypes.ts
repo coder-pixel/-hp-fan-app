@@ -1,4 +1,10 @@
-export type LifelineId = "maraudersMap" | "askDumbledore" | "felixFelicis" | "legilimency" | "revelio";
+export type LifelineId =
+  | "maraudersMap"
+  | "askDumbledore"
+  | "felixFelicis"
+  | "legilimency"
+  | "revelio"
+  | "freezeTime";
 
 export interface LifelineDefinition {
   id: LifelineId;

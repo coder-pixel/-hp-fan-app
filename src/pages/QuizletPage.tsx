@@ -7,11 +7,12 @@ import MagicalParticles from "@/components/quizlet/MagicalParticles";
 import LifelineBar from "@/components/quizlet/lifelines/LifelineBar";
 import LifelineEffects from "@/components/quizlet/lifelines/LifelineEffects";
 import QuizInstructions from "@/components/quizlet/QuizInstructions";
+import TimerPill from "@/components/quizlet/TimerPill";
 import { QuizProvider, useQuiz } from "@/quiz-engine";
 
 const QuizletInner = () => {
   const { state, actions } = useQuiz();
-  const { status, questions, questionIndex, score, streak, selectedAnswer, lifelineStates, activeEffect, felixActive, mapHighlight, hiddenOptions } = state;
+  const { status, config, timer, questions, questionIndex, score, streak, selectedAnswer, lifelineStates, activeEffect, felixActive, mapHighlight, hiddenOptions } = state;
   const currentQuestion = questions[questionIndex];
 
   if (status === "instructions") {
@@ -49,6 +50,10 @@ const QuizletInner = () => {
         <>
           <LifelineEffects effect={activeEffect} onDismiss={actions.dismissEffect} />
 
+          {config.timer?.enabled && (
+            <TimerPill remaining={timer.remaining} isFrozen={timer.isFrozen} didTimeout={timer.didTimeout} />
+          )}
+
           {felixActive && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center mb-3">
               <span
@@ -84,7 +89,13 @@ const QuizletInner = () => {
 };
 
 const QuizletPage = () => (
-  <QuizProvider>
+  <QuizProvider
+    config={{
+      id: "hogwarts-trivia",
+      title: "Ultimate Harry Potter Trivia",
+      timer: { enabled: true, secondsPerQuestion: 40 },
+    }}
+  >
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <main className="relative flex-1 pt-28 pb-24 px-4">

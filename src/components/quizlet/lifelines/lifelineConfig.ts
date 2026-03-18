@@ -7,4 +7,5 @@ export const enabledLifelines: Record<LifelineId, boolean> = {
   felixFelicis: true,
   legilimency: true,
   revelio: true,
+  freezeTime: true,
 };

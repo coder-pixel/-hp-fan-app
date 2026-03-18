@@ -1,27 +1,63 @@
-import type { QuizState, QuizPlugin, PluginAPI, QuizEventName, QuizEventHandler } from "./engineTypes";
+import type {
+  QuizState,
+  QuizPlugin,
+  PluginAPI,
+  QuizEventName,
+  QuizEventHandler,
+  QuizConfig,
+} from "./engineTypes";
 import type { LifelineId } from "@/components/quizlet/lifelines/lifelineTypes";
 import { lifelineRegistry } from "@/components/quizlet/lifelines/lifelineRegistry";
 import { QuizEventBus } from "./engineEvents";
 import { quizletQuestions } from "@/data/quizletQuestions";
 
-const shuffle = <T,>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
+const shuffle = <T>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
+
+const defaultQuizConfig: QuizConfig = {
+  id: "hogwarts-trivia",
+  title: "Ultimate Harry Potter Trivia",
+  timer: { enabled: false, secondsPerQuestion: 40 },
+};
+
+const clampTimerSeconds = (seconds: number) =>
+  Math.max(30, Math.min(50, Math.floor(seconds)));
 
 function createInitialLifelineStates() {
-  const states: QuizState["lifelineStates"] = {} as any;
+  const states: QuizState["lifelineStates"] = {} as Record<
+    LifelineId,
+    { id: LifelineId; usedCount: number; active: boolean }
+  >;
   for (const id of Object.keys(lifelineRegistry) as LifelineId[]) {
     states[id] = { id, usedCount: 0, active: false };
   }
   return states;
 }
 
-export function createInitialState(): QuizState {
+export function createInitialState(
+  config: QuizConfig = defaultQuizConfig,
+): QuizState {
+  const timerCfg = config.timer ?? { enabled: false, secondsPerQuestion: 40 };
+  const secondsPerQuestion = clampTimerSeconds(
+    timerCfg.secondsPerQuestion ?? 40,
+  );
+
   return {
     status: "instructions",
+    config: {
+      ...config,
+      timer: { enabled: !!timerCfg.enabled, secondsPerQuestion },
+    },
     questions: shuffle(quizletQuestions),
     questionIndex: 0,
     score: 0,
     streak: 0,
     selectedAnswer: null,
+    timer: {
+      remaining: secondsPerQuestion,
+      isRunning: false,
+      isFrozen: false,
+      didTimeout: false,
+    },
     lifelineStates: createInitialLifelineStates(),
     activeEffect: null,
     felixActive: false,
@@ -57,8 +93,15 @@ export class QuizEngine {
     return {
       getState: () => this.state,
       setState: (updater) => this.setState(updater),
-      on: <E extends QuizEventName>(e: E, h: QuizEventHandler<E>) => this.bus.on(e, h),
-      off: <E extends QuizEventName>(e: E, h: QuizEventHandler<E>) => this.bus.off(e, h),
+      on: <E extends QuizEventName>(e: E, h: QuizEventHandler<E>) =>
+        this.bus.on(e, h),
+      off: <E extends QuizEventName>(e: E, h: QuizEventHandler<E>) =>
+        this.bus.off(e, h),
+      actions: {
+        answerQuestion: (optionIndex: number) =>
+          this.answerQuestion(optionIndex),
+        advanceQuestion: () => this.advanceQuestion(),
+      },
     };
   }
 
@@ -70,7 +113,9 @@ export class QuizEngine {
   // ── Actions ───────────────────────────────────────────
   startQuiz() {
     this.setState((s) => ({ ...s, status: "playing" }));
-    this.bus.emit("onQuizStart", { totalQuestions: this.state.questions.length });
+    this.bus.emit("onQuizStart", {
+      totalQuestions: this.state.questions.length,
+    });
     this.bus.emit("onQuestionStart", {
       index: 0,
       question: this.state.questions[0],
@@ -81,7 +126,8 @@ export class QuizEngine {
     if (this.state.selectedAnswer !== null) return;
 
     const question = this.state.questions[this.state.questionIndex];
-    const correct = this.state.felixActive || optionIndex === question.correctAnswer;
+    const correct =
+      this.state.felixActive || optionIndex === question.correctAnswer;
 
     this.setState((s) => ({
       ...s,
@@ -91,7 +137,11 @@ export class QuizEngine {
       mapHighlight: null,
     }));
 
-    this.bus.emit("onAnswerSelected", { index: optionIndex, correct, question });
+    this.bus.emit("onAnswerSelected", {
+      index: optionIndex,
+      correct,
+      question,
+    });
   }
 
   advanceQuestion() {

@@ -1,15 +1,41 @@
 import type { QuizletQuestion } from "@/data/quizletQuestions";
-import type { LifelineId, LifelineState, LifelineEffect } from "@/components/quizlet/lifelines/lifelineTypes";
+import type {
+  LifelineId,
+  LifelineState,
+  LifelineEffect,
+} from "@/components/quizlet/lifelines/lifelineTypes";
 
 export type QuizStatus = "instructions" | "playing" | "finished";
 
+export interface QuizTimerConfig {
+  enabled: boolean;
+  /** Per-question countdown, clamped to 30–50 seconds. */
+  secondsPerQuestion: number;
+}
+
+export interface QuizConfig {
+  id: string;
+  title: string;
+  timer?: QuizTimerConfig;
+}
+
+export interface TimerState {
+  remaining: number;
+  isRunning: boolean;
+  isFrozen: boolean;
+  /** Used by UI for a brief timeout shake. */
+  didTimeout: boolean;
+}
+
 export interface QuizState {
   status: QuizStatus;
+  config: QuizConfig;
   questions: QuizletQuestion[];
   questionIndex: number;
   score: number;
   streak: number;
   selectedAnswer: number | null;
+  timer: TimerState;
   lifelineStates: Record<LifelineId, LifelineState>;
   activeEffect: LifelineEffect | null;
   felixActive: boolean;
@@ -44,7 +70,14 @@ export interface PluginAPI {
   getState: () => QuizState;
   setState: (updater: (prev: QuizState) => QuizState) => void;
   on: <E extends QuizEventName>(event: E, handler: QuizEventHandler<E>) => void;
-  off: <E extends QuizEventName>(event: E, handler: QuizEventHandler<E>) => void;
+  off: <E extends QuizEventName>(
+    event: E,
+    handler: QuizEventHandler<E>,
+  ) => void;
+  actions: {
+    answerQuestion: (optionIndex: number) => void;
+    advanceQuestion: () => void;
+  };
 }
 
 // ── Events ──────────────────────────────────────────────
@@ -60,7 +93,11 @@ export type QuizEventName =
 export interface QuizEventPayloads {
   onQuizStart: { totalQuestions: number };
   onQuestionStart: { index: number; question: QuizletQuestion };
-  onAnswerSelected: { index: number; correct: boolean; question: QuizletQuestion };
+  onAnswerSelected: {
+    index: number;
+    correct: boolean;
+    question: QuizletQuestion;
+  };
   onQuestionEnd: { index: number };
   onQuizFinish: { score: number; total: number };
   onLifelineUsed: { id: LifelineId };
@@ -68,5 +105,5 @@ export interface QuizEventPayloads {
 }
 
 export type QuizEventHandler<E extends QuizEventName> = (
-  payload: QuizEventPayloads[E]
+  payload: QuizEventPayloads[E],
 ) => void;

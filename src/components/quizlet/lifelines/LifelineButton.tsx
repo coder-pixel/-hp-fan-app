@@ -1,4 +1,4 @@
-import { Map, MessageCircle, FlaskConical, Eye, Sparkles, type LucideIcon } from "lucide-react";
+import { Map, MessageCircle, FlaskConical, Eye, Sparkles, Snowflake, type LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import type { LifelineDefinition } from "./lifelineTypes";
 import {
@@ -13,6 +13,7 @@ const iconMap: Record<string, LucideIcon> = {
   FlaskConical,
   Eye,
   Sparkles,
+  Snowflake,
 };
 
 interface LifelineButtonProps {
