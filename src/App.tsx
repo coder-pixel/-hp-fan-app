@@ -3,10 +3,10 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Index from "./pages/Index.tsx";
-import NotFound from "./pages/NotFound.tsx";
-import QuizletPage from "./pages/QuizletPage.tsx";
-import ThisOrThatPage from "./pages/ThisOrThatPage.tsx";
+import Index from "./pages/common/Index.tsx";
+import NotFound from "./pages/common/NotFound.tsx";
+import QuizletPage from "./pages/common/QuizletPage.tsx";
+import ThisOrThatPage from "./pages/common/ThisOrThatPage.tsx";
 
 const queryClient = new QueryClient();
 
