@@ -1,3 +1,5 @@
+import brandLogo from "@/assets/potterwiki-logo.png";
+
 const footerLinks = [
   { label: "Home", href: "#" },
   { label: "Quizzes", href: "#quizzes" },
@@ -16,8 +18,15 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           <div>
             <h3 className="font-display text-xl font-bold tracking-wider">
-              <span className="text-gradient-gold">Wizard</span>
-              <span className="text-foreground/90">Verse</span>
+              <span className="inline-flex items-center gap-2">
+                <img
+                  src={brandLogo}
+                  alt="Potterwiki"
+                  className="h-8 w-8 rounded-md object-cover ring-1 ring-border/40"
+                />
+                <span className="text-gradient-gold">Potter</span>
+                <span className="text-foreground/90">wiki</span>
+              </span>
             </h3>
           </div>
 

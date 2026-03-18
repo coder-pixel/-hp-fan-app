@@ -12,9 +12,9 @@ const QuizletResult = ({ score, total, onRestart }: QuizletResultProps) => {
   const percentage = Math.round((score / total) * 100);
 
   const handleShare = () => {
-    const text = `⚡ I scored ${score}/${total} (${percentage}%) on the WizardVerse Quizlet! Can you beat me?`;
+    const text = `⚡ I scored ${score}/${total} (${percentage}%) on Potterwiki Quizlet! Can you beat me?`;
     if (navigator.share) {
-      navigator.share({ title: "WizardVerse Quizlet", text });
+      navigator.share({ title: "Potterwiki Quizlet", text });
     } else {
       navigator.clipboard.writeText(text);
     }
