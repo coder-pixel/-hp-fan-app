@@ -6,37 +6,48 @@
 
 @layer base {
   :root {
+    /* App surface + default text (drives Tailwind `bg-background` + `text-foreground` on `body`) */
     --background: 0 0% 2%;
     --foreground: 214 32% 91%;
 
+    /* Cards (used by `bg-card` and `.glass-card`; foreground is default text inside cards) */
     --card: 0 0% 7%;
     --card-foreground: 214 32% 91%;
 
+    /* Popovers/menus/tooltips (ShadCN/Radix surfaces; e.g. dropdowns, tooltips) */
     --popover: 0 0% 7%;
     --popover-foreground: 214 32% 91%;
 
+    /* Primary action color (used by ShadCN `Button` default + other `bg-primary` surfaces) */
     --primary: 235 45% 20%;
     --primary-foreground: 0 0% 100%;
 
+    /* Secondary accent (used by `bg-secondary` and purple UI highlights / hover borders) */
     --secondary: 270 66% 35%;
     --secondary-foreground: 0 0% 100%;
 
+    /* Muted surfaces + helper text (e.g. `text-muted-foreground` used across captions/subtitles) */
     --muted: 235 20% 15%;
     --muted-foreground: 214 20% 60%;
 
+    /* Gold accent (used for highlights, rings, and `.btn-primary-gold` text color) */
     --accent: 43 72% 52%;
     --accent-foreground: 0 0% 2%;
 
+    /* Error/destructive states (e.g. incorrect answers, destructive button variants) */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
+    /* Global borders/inputs/focus ring (Tailwind `border-border`, form borders, focus outlines) */
     --border: 270 30% 20%;
     --input: 270 30% 20%;
     --ring: 43 72% 52%;
 
+    /* Default rounding for ShadCN components (e.g. cards, buttons, inputs) */
     --radius: 0.75rem;
 
     /* Custom tokens */
+    /* Raw brand palette primitives (used when composing gradients/shadows in this file) */
     --gold: 43 72% 52%;
     --gold-glow: 43 80% 60%;
     --indigo-deep: 235 45% 20%;
@@ -44,6 +55,7 @@
     --obsidian: 0 0% 2%;
     --silver: 214 32% 91%;
 
+    /* Background gradients (used by hero/backdrops + glass cards) */
     --gradient-hero: linear-gradient(
       135deg,
       hsl(0 0% 2%) 0%,
@@ -55,27 +67,35 @@
       hsla(0 0% 7% / 0.9),
       hsla(235 45% 10% / 0.6)
     );
+    /* Gold gradient (used by `.text-gradient-gold` + `.btn-primary-gold`) */
     --gradient-gold: linear-gradient(135deg, hsl(43 72% 52%), hsl(35 80% 45%));
     --gradient-purple: linear-gradient(
       135deg,
       hsl(270 66% 35%),
       hsl(235 45% 30%)
     );
+    /* Purple gradient (used by `.text-gradient-purple` + progress/fill accents) */
+
+    /* Glow + elevation shadows (used by `.glow-*`, `.glass-card`, and primary CTA hover states) */
     --shadow-glow-gold: 0 0 20px hsla(43 72% 52% / 0.3);
     --shadow-glow-gold-strong:
       0 0 30px hsla(43 72% 52% / 0.4), 0 0 60px hsla(43 72% 52% / 0.15);
     --shadow-glow-purple: 0 0 20px hsla(270 66% 35% / 0.3);
     --shadow-glow-purple-strong:
       0 0 30px hsla(270 66% 35% / 0.4), 0 0 60px hsla(270 66% 35% / 0.15);
+    /* Default card shadow (used by `.glass-card`) */
     --shadow-card:
       0 4px 24px -4px hsla(0 0% 0% / 0.5), 0 0 0 1px hsla(270 30% 20% / 0.3);
+    /* Card hover shadow (used by `.glass-card-hover:hover`) */
     --shadow-card-hover:
       0 8px 40px -8px hsla(270 66% 35% / 0.35),
       0 0 0 1px hsla(270 30% 30% / 0.5);
 
+    /* Typography tokens (used by `body` via Tailwind `font-body`, and headings via base `h1..h6`) */
     --font-display: "Cinzel", serif;
     --font-body: "Montserrat", sans-serif;
 
+    /* Sidebar theme tokens (consumed by ShadCN `sidebar` component styles, if/when used) */
     --sidebar-background: 0 0% 5%;
     --sidebar-foreground: 214 32% 91%;
     --sidebar-primary: 235 45% 20%;
