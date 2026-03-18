@@ -1,6 +1,7 @@
 import type { QuizPlugin, PluginAPI } from "../engineTypes";
 import type { LifelineId } from "@/components/quizlet/lifelines/lifelineTypes";
 import { lifelineRegistry } from "@/components/quizlet/lifelines/lifelineRegistry";
+import type { QuizletQuestion } from "@/data/quizletQuestions";
 
 /**
  * Handles all lifeline activation logic.
@@ -20,7 +21,10 @@ export const lifelinePlugin: QuizPlugin = {
         ...s,
         lifelineStates: {
           ...s.lifelineStates,
-          [id]: { ...s.lifelineStates[id], usedCount: s.lifelineStates[id].usedCount + 1 },
+          [id]: {
+            ...s.lifelineStates[id],
+            usedCount: s.lifelineStates[id].usedCount + 1,
+          },
         },
       }));
 
@@ -36,8 +40,13 @@ export const lifelinePlugin: QuizPlugin = {
     });
 
     api.on("onRestart", () => {
-      const fresh: Record<LifelineId, { id: LifelineId; usedCount: number; active: boolean }> =
-        {} as any;
+      const fresh: Record<
+        LifelineId,
+        { id: LifelineId; usedCount: number; active: boolean }
+      > = {} as Record<
+        LifelineId,
+        { id: LifelineId; usedCount: number; active: boolean }
+      >;
       for (const id of Object.keys(lifelineRegistry) as LifelineId[]) {
         fresh[id] = { id, usedCount: 0, active: false };
       }
@@ -52,10 +61,14 @@ export const lifelinePlugin: QuizPlugin = {
   },
 };
 
-function applyEffect(api: PluginAPI, id: LifelineId, question: any) {
+function applyEffect(
+  api: PluginAPI,
+  id: LifelineId,
+  question: QuizletQuestion,
+) {
   switch (id) {
     case "maraudersMap": {
-      api.setState((s) => ({ ...s, mapHighlight: question.correctAnswer }));
+      api.setState((s) => ({ ...s, mapHighlight: question?.correctAnswer }));
       setTimeout(() => {
         api.setState((s) => ({ ...s, mapHighlight: null }));
       }, 3000);
@@ -63,8 +76,11 @@ function applyEffect(api: PluginAPI, id: LifelineId, question: any) {
     }
     case "askDumbledore": {
       const hint =
-        question.hint || "Even Dumbledore does not have a hint for this one…";
-      api.setState((s) => ({ ...s, activeEffect: { type: "askDumbledore", hint } }));
+        question?.hint || "Even Dumbledore does not have a hint for this one…";
+      api.setState((s) => ({
+        ...s,
+        activeEffect: { type: "askDumbledore", hint },
+      }));
       break;
     }
     case "felixFelicis": {
@@ -72,18 +88,23 @@ function applyEffect(api: PluginAPI, id: LifelineId, question: any) {
       break;
     }
     case "legilimency": {
-      const correct = question.correctAnswer;
-      const names = ["Dumbledore", "McGonagall", "Snape", "Hagrid"];
-      const percents = question.options.map((_: string, i: number) => {
-        if (i === correct) return 55 + Math.floor(Math.random() * 20);
-        return 5 + Math.floor(Math.random() * 15);
+      const correct = question?.correctAnswer;
+      // const names = ["Dumbledore", "McGonagall", "Snape", "Hagrid"];
+      const names = question?.options?.map((option: string) => option);
+      // Simulate an "audience poll": the correct answer is favored with a higher percentage (65–84%), while other options get smaller random shares (10–44%).
+      const percents = question?.options?.map((_: string, i: number) => {
+        if (i === correct) return 65 + Math.floor(Math.random() * 25);
+        return 10 + Math.floor(Math.random() * 35);
       });
-      const total = percents.reduce((a: number, b: number) => a + b, 0);
-      const pollResults = percents.map((p: number, i: number) => ({
-        name: names[i] || `Wizard ${i + 1}`,
+      const total = percents?.reduce((a: number, b: number) => a + b, 0);
+      const pollResults = percents?.map((p: number, i: number) => ({
+        name: names?.[i] || `Wizard ${i + 1}`,
         percent: Math.round((p / total) * 100),
       }));
-      api.setState((s) => ({ ...s, activeEffect: { type: "legilimency", pollResults } }));
+      api.setState((s) => ({
+        ...s,
+        activeEffect: { type: "legilimency", pollResults },
+      }));
       break;
     }
   }

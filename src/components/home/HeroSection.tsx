@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useMemo } from "react";
+import { Link } from "react-router-dom";
 
 const Particle = ({ delay, left, size, opacity }: { delay: number; left: string; size: number; opacity: number }) => (
   <div
@@ -17,6 +18,7 @@ const Particle = ({ delay, left, size, opacity }: { delay: number; left: string;
 );
 
 const HeroSection = () => {
+  // used to generate the particles in the background
   const particles = useMemo(
     () =>
       Array.from({ length: 25 }, (_, i) => ({
@@ -39,8 +41,8 @@ const HeroSection = () => {
 
       {/* Particles */}
       <div className="absolute inset-0 pointer-events-none">
-        {particles.map((p) => (
-          <Particle key={p.id} {...p} />
+        {particles?.map((p) => (
+          <Particle key={p?.id} {...p} />
         ))}
       </div>
 
@@ -85,9 +87,9 @@ const HeroSection = () => {
           transition={{ duration: 0.8, delay: 0.45 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <a href="#quizzes" className="btn-primary-gold text-base">
+          <Link to="/quizzes" className="btn-primary-gold text-base">
             Take a Quiz
-          </a>
+          </Link>
           <a href="#polls" className="btn-secondary-outline text-base">
             Today's Poll
           </a>
