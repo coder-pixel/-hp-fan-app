@@ -1,26 +1,37 @@
 import { motion } from "framer-motion";
-import { Map, MessageCircle, FlaskConical, Eye, Zap, Flame, BookOpen } from "lucide-react";
+import { Map, MessageCircle, FlaskConical, Eye, Sparkles, Hourglass, Zap, Flame, BookOpen } from "lucide-react";
 import { lifelineRegistry } from "./lifelines/lifelineRegistry";
-import { enabledLifelines } from "./lifelines/lifelineConfig";
 import type { LifelineId } from "./lifelines/lifelineTypes";
 import { Button } from "../ui/button";
+import type { QuizPluginsConfig } from "@/types/quiz";
+import { useMemo } from "react";
 
 const iconMap: Record<string, React.FC<{ size?: number; className?: string }>> = {
   Map: Map as React.FC<{ size?: number; className?: string }>,
   MessageCircle: MessageCircle as React.FC<{ size?: number; className?: string }>,
   FlaskConical: FlaskConical as React.FC<{ size?: number; className?: string }>,
   Eye: Eye as React.FC<{ size?: number; className?: string }>,
+  Sparkles: Sparkles as React.FC<{ size?: number; className?: string }>,
+  Hourglass: Hourglass as React.FC<{ size?: number; className?: string }>,
 };
 
 interface QuizInstructionsProps {
   totalQuestions: number;
+  quizLifelines: QuizPluginsConfig;
   onStart: () => void;
 }
 
-const QuizInstructions = ({ totalQuestions, onStart }: QuizInstructionsProps) => {
-  const visibleLifelines = (Object.keys(lifelineRegistry) as LifelineId[])?.filter(
-    (id) => enabledLifelines?.[id]
-  );
+const QuizInstructions = ({ totalQuestions, quizLifelines, onStart }: QuizInstructionsProps) => {
+  const visibleLifelines = useMemo(() => {
+    const timerEnabled = !!quizLifelines?.timer?.enabled;
+    return (Object.keys(lifelineRegistry) as LifelineId[]).filter((id) => {
+      const config = quizLifelines?.[id as keyof typeof quizLifelines];
+      if (!config || typeof config !== "object" || !("enabled" in config)) return true;
+      if (config.enabled === false) return false;
+      if (id === "freezeTime" && !timerEnabled) return false;
+      return true;
+    });
+  }, [quizLifelines]);
 
   return (
     <motion.div
@@ -73,9 +84,12 @@ const QuizInstructions = ({ totalQuestions, onStart }: QuizInstructionsProps) =>
             Your Lifelines
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* {console.log({ visibleLifelines })} */}
             {visibleLifelines?.map((id) => {
               const def = lifelineRegistry?.[id];
               const Icon = iconMap[def?.icon] ?? Map;
+
+              if (!def) return null; // Timer is not a direct lifeline, will be shown in the quiz card as a timer.
               return (
                 <div
                   key={id}

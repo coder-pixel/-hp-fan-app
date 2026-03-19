@@ -151,20 +151,34 @@ export const hpTrivia: Quiz = {
       hint: "He shares his name with his Muggle father.",
       type: "multiple-choice",
     },
+    {
+      id: "question-11",
+      question: "What is the name of Harry's first pet?",
+      options: [
+        { id: 1, text: "Hedwig" },
+        { id: 2, text: "Scabbers" },
+        { id: 3, text: "Crookshanks" },
+        { id: 4, text: "Dobby" },
+      ],
+      correctAnswer: 1,
+      explanation: "This owl was Harry's companion from the start.",
+      hint: "This owl was Harry's companion from the start.",
+      type: "multiple-choice",
+    },
   ],
   //   totalQuestions: 10,
   difficulty: QuizDifficulty.EASY,
   category: "Harry Potter",
   type: "multiple-choice",
-  config: {
+  lifelineConfig: {
     timer: { enabled: true, secondsPerQuestion: 40 },
     maraudersMap: {
-      enabled: true,
+      enabled: false,
       maxUsagePerGame: 1,
       usageCount: 0,
     },
     askDumbledore: {
-      enabled: true,
+      enabled: false,
       maxUsagePerGame: 1,
       usageCount: 0,
     },

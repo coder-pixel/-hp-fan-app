@@ -1,4 +1,4 @@
-import { Map, MessageCircle, FlaskConical, Eye, Sparkles, Snowflake, X, type LucideIcon } from "lucide-react";
+import { Map, MessageCircle, FlaskConical, Eye, Sparkles, Hourglass, X, type LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import type { LifelineDefinition } from "./lifelineTypes";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -10,7 +10,7 @@ const iconMap: Record<string, LucideIcon> = {
   FlaskConical,
   Eye,
   Sparkles,
-  Snowflake,
+  Hourglass,
 };
 
 interface LifelineIconButtonProps {
@@ -28,7 +28,7 @@ export default function LifelineIconButton({
   active = false,
   onActivate,
 }: LifelineIconButtonProps) {
-  const Icon = iconMap[definition.icon] ?? Map;
+  const Icon = iconMap[definition?.icon] ?? Map;
   const isDisabled = used || disabled;
 
   return (
@@ -43,21 +43,21 @@ export default function LifelineIconButton({
           className={cn(
             "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-all duration-200",
             used &&
-              "cursor-not-allowed border-border/30 bg-muted/30",
+            "cursor-not-allowed border-border/30 bg-muted/30",
             !used &&
-              disabled &&
-              "cursor-not-allowed border-border/30 bg-muted/30 opacity-70",
+            disabled &&
+            "cursor-not-allowed border-border/30 bg-muted/30 opacity-70",
             !used &&
-              !disabled &&
-              "cursor-pointer border-secondary/40 bg-secondary/10 hover:border-accent/50 hover:bg-accent/10",
+            !disabled &&
+            "cursor-pointer border-secondary/40 bg-secondary/10 hover:border-accent/50 hover:bg-accent/10",
             active && "ring-2 ring-accent/60 ring-offset-2 ring-offset-background"
           )}
           style={
             (used || (!active && isDisabled))
               ? { boxShadow: "0 0 12px hsla(270, 66%, 35%, 0.12)" }
               : active
-              ? { boxShadow: "0 0 20px hsla(43, 72%, 52%, 0.35)" }
-              : undefined
+                ? { boxShadow: "0 0 20px hsla(43, 72%, 52%, 0.35)" }
+                : undefined
           }
         >
           {used ? (
@@ -85,10 +85,10 @@ export default function LifelineIconButton({
         className="max-w-[220px] border-border/50 bg-popover px-3 py-2 text-left shadow-lg"
       >
         <p className="font-display text-xs font-semibold text-foreground">
-          {definition.displayName}
+          {definition?.displayName}
         </p>
         <p className="mt-1 text-[11px] text-muted-foreground leading-snug">
-          {definition.description}
+          {definition?.description}
         </p>
       </TooltipContent>
     </Tooltip>

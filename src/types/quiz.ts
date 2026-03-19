@@ -143,7 +143,7 @@ export interface Quiz {
   category: string;
   /** Quiz-level type retained for backward compatibility; questions define their own type. */
   type: "multiple-choice";
-  config?: QuizPluginsConfig;
+  lifelineConfig?: QuizPluginsConfig;
   createdAt: string;
   updatedAt: string;
 }

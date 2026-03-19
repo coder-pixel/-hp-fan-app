@@ -64,7 +64,7 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
           <h1 className="font-display text-3xl sm:text-4xl font-bold mb-2">{config?.title}</h1>
         </div>
 
-        <QuizInstructions totalQuestions={questions?.length} onStart={actions?.startQuiz} />
+        <QuizInstructions totalQuestions={questions?.length} onStart={actions?.startQuiz} quizLifelines={quiz?.lifelineConfig} />
       </div>
     );
   }
@@ -113,6 +113,7 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
           />
 
           <LifelineDock
+            quizLifelines={quiz?.lifelineConfig}
             lifelineStates={lifelineStates}
             onActivate={actions?.useLifeline}
             disabled={selectedAnswer !== null}
@@ -159,8 +160,8 @@ const QuizPlayPage = () => {
               id: quiz?.id,
               title: quiz?.title,
               timer: {
-                enabled: !!quiz?.config?.timer?.enabled,
-                secondsPerQuestion: quiz?.config?.timer?.secondsPerQuestion ?? 40,
+                enabled: !!quiz?.lifelineConfig?.timer?.enabled,
+                secondsPerQuestion: quiz?.lifelineConfig?.timer?.secondsPerQuestion ?? 40,
               },
               questions: toQuizQuestions(quiz as Quiz),
             }}

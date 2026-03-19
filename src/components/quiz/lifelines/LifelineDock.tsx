@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 import type { LifelineId, LifelineState } from "./lifelineTypes";
 import { lifelineRegistry } from "./lifelineRegistry";
-import { enabledLifelines } from "./lifelineConfig";
 import LifelineIconButton from "./LifelineIconButton";
+import type { QuizPluginsConfig } from "@/types/quiz";
 
 interface LifelineDockProps {
+  quizLifelines: QuizPluginsConfig;
   lifelineStates: Record<LifelineId, LifelineState>;
   onActivate: (id: LifelineId) => void;
   disabled: boolean;
@@ -13,14 +14,22 @@ interface LifelineDockProps {
 }
 
 export default function LifelineDock({
+  quizLifelines,
   lifelineStates,
   onActivate,
   disabled,
   activeId = null,
 }: LifelineDockProps) {
-  const visibleLifelines = (Object.keys(lifelineRegistry) as LifelineId[]).filter(
-    (id) => enabledLifelines[id]
-  );
+  // Only show lifelines that exist in registry and are not disabled by quiz config (enabled: false).
+  const timerEnabled = !!quizLifelines?.timer?.enabled;
+  const visibleLifelines = (Object.keys(lifelineRegistry) as LifelineId[])?.filter((id) => {
+    const config = quizLifelines?.[id as keyof typeof quizLifelines];
+    if (!config || typeof config !== "object" || !("enabled" in config)) return true;
+    if (config?.enabled === false) return false;
+    // Time Freeze is only shown when the quiz timer is also enabled (otherwise it has no effect).
+    if (id === "freezeTime" && !timerEnabled) return false;
+    return true;
+  });
 
   if (visibleLifelines.length === 0) return null;
 
@@ -48,7 +57,7 @@ export default function LifelineDock({
               used={state?.usedCount >= def?.maxUsagePerGame}
               disabled={disabled}
               active={activeId === id}
-              onActivate={() => onActivate(id)}
+              onActivate={() => onActivate(id as LifelineId)}
             />
           );
         })}

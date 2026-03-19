@@ -159,7 +159,7 @@ export const hermioneTrivia: Quiz = {
   difficulty: QuizDifficulty.EASY,
   category: "Hermione Granger",
   type: "multiple-choice",
-  config: {
+  lifelineConfig: {
     timer: { enabled: false, secondsPerQuestion: 40 },
     maraudersMap: {
       enabled: false,
