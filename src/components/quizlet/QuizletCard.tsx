@@ -77,8 +77,6 @@ const QuizletCard = ({
           <div className="flex items-center justify-between mb-5">
             <span className="text-[11px] text-muted-foreground font-body tracking-wide">
               Question {currentIndex + 1} / {total}
-
-              asdf
             </span>
             {streak > 1 && (
               <motion.span

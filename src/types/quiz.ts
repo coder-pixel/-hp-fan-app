@@ -19,7 +19,7 @@ export interface LifelineConfig {
   usageCount: number;
 }
 
-export interface QuizConfig {
+export interface QuizPluginsConfig {
   timer?: {
     enabled: boolean;
     secondsPerQuestion: number;
@@ -32,17 +32,13 @@ export interface QuizConfig {
   freezeTime?: LifelineConfig;
 }
 
-export interface Quiz {
+/** Shared fields for all question types (discriminated union base). */
+export interface BaseQuestion {
   id: string;
-  title: string;
-  questions: QuizQuestion[];
-  //   totalQuestions: number;
-  difficulty: QuizDifficulty;
-  category: string;
-  type: "multiple-choice";
-  config?: QuizConfig; // impt, used to configure the quiz engine with custom settings, plugins, lifelines, etc.
-  createdAt: string;
-  updatedAt: string;
+  question: string;
+  image?: string;
+  hint: string;
+  explanation?: string;
 }
 
 export interface QuizOption {
@@ -51,13 +47,98 @@ export interface QuizOption {
   image?: string;
 }
 
-export interface QuizQuestion {
-  id: string;
-  question: string;
+/** Multiple-choice: options + single correct answer. Backward compatible with type "multiple-choice". */
+export interface MultipleChoiceQuestion extends BaseQuestion {
+  type: "multiple-choice";
   options: QuizOption[];
   correctAnswer: number;
-  explanation?: string;
-  hint: string;
-  image?: string;
+}
+
+/** True/false: two options, one correct. */
+export interface TrueFalseQuestion extends BaseQuestion {
+  type: "true-false";
+  correctAnswer: boolean;
+}
+
+/** Image guess: image + answer (name/title). */
+export interface ImageGuessQuestion extends BaseQuestion {
+  type: "image-guess";
+  answer: string;
+  /** Optional wrong options for multiple-choice style reveal. */
+  distractors?: string[];
+}
+
+/** Quote: quote text + who said it / source. */
+export interface QuoteQuestion extends BaseQuestion {
+  type: "quote";
+  quote: string;
+  correctAnswer: string;
+  options?: QuizOption[];
+}
+
+/** Personality: options map to outcomes (e.g. house quiz). */
+export interface PersonalityQuestion extends BaseQuestion {
+  type: "personality";
+  options: QuizOption[];
+  /** Option id -> outcome id for scoring/result. */
+  outcomeMap: Record<number, string>;
+}
+
+/** Order: put items in correct order. */
+export interface OrderQuestion extends BaseQuestion {
+  type: "order";
+  items: string[];
+  /** Correct order: array of indices into items. */
+  correctOrder: number[];
+}
+
+/** Discriminated union of all question types. Add new types here and in the renderer. */
+export type QuizQuestion =
+  | MultipleChoiceQuestion
+  | TrueFalseQuestion
+  | ImageGuessQuestion
+  | QuoteQuestion
+  | PersonalityQuestion
+  | OrderQuestion;
+
+/** Type guard: multiple-choice (backward compatible). */
+export function isMultipleChoiceQuestion(
+  q: QuizQuestion,
+): q is MultipleChoiceQuestion {
+  return q.type === "multiple-choice";
+}
+
+export function isTrueFalseQuestion(q: QuizQuestion): q is TrueFalseQuestion {
+  return q.type === "true-false";
+}
+
+export function isImageGuessQuestion(q: QuizQuestion): q is ImageGuessQuestion {
+  return q.type === "image-guess";
+}
+
+export function isQuoteQuestion(q: QuizQuestion): q is QuoteQuestion {
+  return q.type === "quote";
+}
+
+export function isPersonalityQuestion(
+  q: QuizQuestion,
+): q is PersonalityQuestion {
+  return q.type === "personality";
+}
+
+export function isOrderQuestion(q: QuizQuestion): q is OrderQuestion {
+  return q.type === "order";
+}
+
+export interface Quiz {
+  id: string;
+  title: string;
+  questions: QuizQuestion[];
+  difficulty: QuizDifficulty;
+  category: string;
+  /** Quiz-level type retained for backward compatibility; questions define their own type. */
   type: "multiple-choice";
+  config?: QuizPluginsConfig;
+  createdAt: string;
+  updatedAt: string;
 }
