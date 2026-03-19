@@ -4,6 +4,7 @@
  */
 
 let audioContext: AudioContext | null = null;
+let quizSoundsEnabled = true;
 
 function getContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -62,11 +63,23 @@ export function resumeAudioContext(): void {
   }
 }
 
+/** Global runtime toggle for all quiz sound effects. */
+export function setQuizSoundsEnabled(enabled: boolean): void {
+  quizSoundsEnabled = enabled;
+  const ctx = getContext();
+  if (!ctx) return;
+  if (!enabled && ctx.state === "running") {
+    // Best-effort suspend to respect user mute.
+    ctx.suspend().catch(() => undefined);
+  }
+}
+
 /**
  * Right answer – "magical glint"
  * Quick 3-note arpeggio with slightly detuned overtones.
  */
 export function playCorrect(): void {
+  if (!quizSoundsEnabled) return;
   resumeAudioContext();
   const baseGain = 0.38;
   const notes = [
@@ -114,6 +127,7 @@ export function playCorrect(): void {
  * Downward shimmer using a brief descending sweep and low gain.
  */
 export function playWrong(): void {
+  if (!quizSoundsEnabled) return;
   resumeAudioContext();
   const ctx = getContext();
   if (!ctx) return;
@@ -149,6 +163,7 @@ export function playWrong(): void {
 
 /** Single clock-style tick: short, sharp transient. */
 function playClockTick(options: { gain?: number; atTime?: number } = {}): void {
+  if (!quizSoundsEnabled) return;
   const ctx = getContext();
   if (!ctx) return;
   const { gain = 0.35, atTime = ctx.currentTime } = options;
@@ -172,12 +187,14 @@ function playClockTick(options: { gain?: number; atTime?: number } = {}): void {
 
 /** Normal timer (40s down to 11s) – clock tick each second. */
 export function playTimerTickSubtle(): void {
+  if (!quizSoundsEnabled) return;
   resumeAudioContext();
   playClockTick({ gain: 0.28 });
 }
 
 /** Timer very low (e.g. last 5 seconds) – double clock tick for emphasis. */
 export function playTimerPulse(): void {
+  if (!quizSoundsEnabled) return;
   resumeAudioContext();
   const ctx = getContext();
   if (!ctx) return;
@@ -188,6 +205,7 @@ export function playTimerPulse(): void {
 
 /** Time's up – soft alert tone. */
 export function playTimeout(): void {
+  if (!quizSoundsEnabled) return;
   resumeAudioContext();
   const ctx = getContext();
   if (!ctx) return;

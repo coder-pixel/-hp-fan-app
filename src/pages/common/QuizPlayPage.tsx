@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Volume2, VolumeX } from "lucide-react";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -14,6 +15,7 @@ import { quizzes } from "@/data/quizzes";
 import type { Quiz, QuizQuestion } from "@/types/quiz";
 import { QuizProvider, useQuiz } from "@/quiz-engine";
 import { Button } from "@/components/ui/button";
+import { setQuizSoundsEnabled } from "@/lib/quizSounds";
 
 function toQuizQuestions(quiz: Quiz): QuizQuestion[] {
   // Engine + lifelines expect 4-option multiple-choice questions (QuizQuestion).
@@ -52,6 +54,12 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
     hiddenOptions,
   } = state;
   const currentQuestion = questions?.[questionIndex];
+  const soundsAllowed = config?.sounds?.enabled !== false;
+  const [audioOn, setAudioOn] = useState<boolean>(soundsAllowed);
+
+  useEffect(() => {
+    setQuizSoundsEnabled(soundsAllowed && audioOn);
+  }, [soundsAllowed, audioOn]);
 
   if (status === "instructions") {
     return (
@@ -84,6 +92,18 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
         <QuizResult quizTitle={config?.title} quizLink={window.location.href} score={score} total={questions?.length} onRestart={actions?.restartQuiz} />
       ) : (
         <>
+          {soundsAllowed && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setAudioOn((v) => !v)}
+              aria-label={audioOn ? "Mute quiz sounds" : "Enable quiz sounds"}
+              className="absolute top-[-14px] right-2 z-[60] h-9 w-9 rounded-xl border border-border/40 bg-background/50 backdrop-blur-md hover:bg-accent/10"
+            >
+              {audioOn ? <Volume2 className="h-4 w-4 text-accent" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
+            </Button>
+          )}
           <LifelineEffects effect={activeEffect} onDismiss={actions?.dismissEffect} />
 
           {config?.timer?.enabled && timer?.didTimeout && (
