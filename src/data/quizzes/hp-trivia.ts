@@ -157,7 +157,7 @@ export const hpTrivia: Quiz = {
   category: "Harry Potter",
   type: "multiple-choice",
   config: {
-    timer: { enabled: false, secondsPerQuestion: 40 },
+    timer: { enabled: true, secondsPerQuestion: 40 },
     maraudersMap: {
       enabled: true,
       maxUsagePerGame: 1,
