@@ -13,12 +13,23 @@ export interface QuizTimerConfig {
   secondsPerQuestion: number;
 }
 
+export interface QuizSoundsConfig {
+  enabled: boolean;
+  correct?: boolean;
+  wrong?: boolean;
+  timerTickSubtle?: boolean;
+  timerPulseLow?: boolean;
+  timeout?: boolean;
+}
+
 export interface QuizConfig {
   id: string;
   title: string;
   timer?: QuizTimerConfig;
   /** Optional question set; defaults to an empty array. */
   questions?: QuizQuestion[];
+  /** Sound effects (timer, correct/wrong, timeout). When enabled, quiz sounds play. */
+  sounds?: QuizSoundsConfig;
 }
 
 export interface TimerState {

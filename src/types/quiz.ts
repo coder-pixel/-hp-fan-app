@@ -32,6 +32,22 @@ export interface QuizPluginsConfig {
   freezeTime?: LifelineConfig;
 }
 
+/** Per-quiz sound effects toggle. When enabled, timer ticks and answer sounds play. */
+export interface QuizSoundsConfig {
+  /** Master switch for all quiz sounds. Default true when omitted. */
+  enabled: boolean;
+  /** Correct-answer sound. Default true when omitted. */
+  correct?: boolean;
+  /** Wrong-answer sound. Default true when omitted. */
+  wrong?: boolean;
+  /** Normal timer tick (40s..11s). Default true when omitted. */
+  timerTickSubtle?: boolean;
+  /** Very-low timer pulse (5s..1s). Default true when omitted. */
+  timerPulseLow?: boolean;
+  /** Timeout sound when timer hits 0. Default true when omitted. */
+  timeout?: boolean;
+}
+
 /** Shared fields for all question types (discriminated union base). */
 export interface BaseQuestion {
   id: string;
@@ -144,6 +160,8 @@ export interface Quiz {
   /** Quiz-level type retained for backward compatibility; questions define their own type. */
   type: "multiple-choice";
   lifelineConfig?: QuizPluginsConfig;
+  /** Sound effects (timer, correct/wrong, timeout). Omit or enabled: true to play sounds. */
+  sounds?: QuizSoundsConfig;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,4 +1,5 @@
 import type { PluginAPI, QuizPlugin } from "../engineTypes";
+import { playTimerTickSubtle, playTimerPulse, playTimeout } from "@/lib/quizSounds";
 
 const TIMEOUT_SENTINEL_ANSWER_INDEX = 9999;
 /** Delay (ms) after timeout before auto-advancing to next question; warning stays visible for this duration. */
@@ -110,6 +111,15 @@ export const timerPlugin: QuizPlugin = (() => {
 
           if (remaining !== lastSecondEmitted) {
             lastSecondEmitted = remaining;
+            const sounds = api.getState().config.sounds;
+            const soundsEnabled = sounds?.enabled !== false;
+            if (remaining > 0 && soundsEnabled) {
+              if (remaining <= 5) {
+                if (sounds?.timerPulseLow !== false) playTimerPulse();
+              } else {
+                if (sounds?.timerTickSubtle !== false) playTimerTickSubtle();
+              }
+            }
             api.setState((s) => ({
               ...s,
               timer: { ...s.timer, remaining, isRunning: true },
@@ -119,6 +129,8 @@ export const timerPlugin: QuizPlugin = (() => {
           if (remaining <= 0) {
             clearTicking();
             clearFreezeTimeout();
+            const sounds = api.getState().config.sounds;
+            if (sounds?.enabled !== false && sounds?.timeout !== false) playTimeout();
             setDidTimeout();
             api.setState((s) => ({
               ...s,

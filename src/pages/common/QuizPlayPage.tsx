@@ -126,6 +126,7 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
             felixActive={felixActive}
             hiddenOptions={hiddenOptions}
             timer={config?.timer?.enabled ? timer : null}
+            sounds={config?.sounds}
           />
 
           <LifelineDock
@@ -180,6 +181,7 @@ const QuizPlayPage = () => {
                 secondsPerQuestion: quiz?.lifelineConfig?.timer?.secondsPerQuestion ?? 40,
               },
               questions: toQuizQuestions(quiz as Quiz),
+              sounds: quiz?.sounds ?? { enabled: true },
             }}
           >
             <QuizPlayInner quiz={quiz} />

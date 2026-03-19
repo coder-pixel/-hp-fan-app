@@ -203,6 +203,14 @@ export const hpTrivia: Quiz = {
       usageCount: 0,
     },
   },
+  sounds: {
+    enabled: true,
+    correct: true,
+    wrong: true,
+    timerTickSubtle: true,
+    timerPulseLow: true,
+    timeout: true,
+  },
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };

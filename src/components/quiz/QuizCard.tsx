@@ -4,6 +4,8 @@ import type { QuizQuestion } from "@/types/quiz";
 import QuestionMedia from "./QuestionMedia";
 import FloatingScore from "./FloatingScore";
 import TimerBadge from "./TimerBadge";
+import { playCorrect, playWrong } from "@/lib/quizSounds";
+import type { QuizSoundsConfig } from "@/types/quiz";
 
 interface TimerState {
   remaining: number;
@@ -23,6 +25,8 @@ interface QuizCardProps {
   hiddenOptions?: number[];
   /** Timer shown inside card when provided */
   timer?: TimerState | null;
+  /** Sound config from quiz. When omitted, defaults to enabled. */
+  sounds?: QuizSoundsConfig;
 }
 
 const QuizCard = ({
@@ -36,6 +40,7 @@ const QuizCard = ({
   felixActive,
   hiddenOptions = [],
   timer,
+  sounds,
 }: QuizCardProps) => {
   const progress = ((currentIndex + 1) / total) * 100;
   const [scoreKey, setScoreKey] = useState(0);
@@ -44,10 +49,14 @@ const QuizCard = ({
   const handleSelect = (index: number) => {
     onSelect(index);
     const isCorrect = felixActive || index === question?.correctAnswer;
+    const soundsEnabled = sounds?.enabled !== false;
     if (isCorrect) {
+      if (soundsEnabled && sounds?.correct !== false) playCorrect();
       setScoreKey((k) => k + 1);
       setShowScore(true);
       setTimeout(() => setShowScore(false), 1000);
+    } else {
+      if (soundsEnabled && sounds?.wrong !== false) playWrong();
     }
   };
 
