@@ -8,7 +8,6 @@ import MagicalParticles from "@/components/quiz/MagicalParticles";
 import QuizInstructions from "@/components/quiz/QuizInstructions";
 import QuizCard from "@/components/quiz/QuizCard";
 import QuizResult from "@/components/quiz/QuizResult";
-import LifelineDock from "@/components/quiz/lifelines/LifelineDock";
 import LifelineEffects from "@/components/quiz/lifelines/LifelineEffects";
 import PollModal from "@/components/quiz/PollModal";
 import { quizzes } from "@/data/quizzes";
@@ -127,14 +126,14 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
             hiddenOptions={hiddenOptions}
             timer={config?.timer?.enabled ? timer : null}
             sounds={config?.sounds}
-          />
-
-          <LifelineDock
-            quizLifelines={quiz?.lifelineConfig}
-            lifelineStates={lifelineStates}
-            onActivate={actions?.useLifeline}
-            disabled={selectedAnswer !== null}
-            activeId={activeEffect?.type ?? null}
+            lifelineDockProps={{
+              quizLifelines: quiz?.lifelineConfig,
+              lifelineStates,
+              onActivate: actions?.useLifeline,
+              disabled: selectedAnswer !== null,
+              activeId: activeEffect?.type ?? null,
+              label: "Lifelines",
+            }}
           />
 
 

@@ -18,6 +18,8 @@ interface LifelineIconButtonProps {
   used: boolean;
   disabled: boolean;
   active?: boolean;
+  /** Remaining uses for this lifeline (0..maxUsagePerGame) */
+  remainingCount: number;
   onActivate: () => void;
 }
 
@@ -26,6 +28,7 @@ export default function LifelineIconButton({
   used,
   disabled,
   active = false,
+  remainingCount,
   onActivate,
 }: LifelineIconButtonProps) {
   const Icon = iconMap[definition?.icon] ?? Map;
@@ -60,6 +63,17 @@ export default function LifelineIconButton({
                 : undefined
           }
         >
+          <span
+            className={cn(
+              "absolute -top-1 -right-1 z-10 flex h-4 min-w-[16px] items-center justify-center rounded-full border px-1 text-[9px] font-body font-semibold backdrop-blur",
+              remainingCount > 0
+                ? "bg-accent/10 border-accent/40 text-accent"
+                : "bg-muted/40 border-border/30 text-muted-foreground/70"
+            )}
+            aria-label={`Lifeline uses remaining: ${remainingCount}`}
+          >
+            {remainingCount}
+          </span>
           {used ? (
             <>
               <Icon className="h-5 w-5 text-muted-foreground/60" aria-hidden />

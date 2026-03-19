@@ -6,6 +6,9 @@ import FloatingScore from "./FloatingScore";
 import TimerBadge from "./TimerBadge";
 import { playCorrect, playWrong } from "@/lib/quizSounds";
 import type { QuizSoundsConfig } from "@/types/quiz";
+import LifelineDock from "@/components/quiz/lifelines/LifelineDock";
+import type { LifelineId, LifelineState } from "@/components/quiz/lifelines/lifelineTypes";
+import type { QuizPluginsConfig } from "@/types/quiz";
 
 interface TimerState {
   remaining: number;
@@ -27,6 +30,15 @@ interface QuizCardProps {
   timer?: TimerState | null;
   /** Sound config from quiz. When omitted, defaults to enabled. */
   sounds?: QuizSoundsConfig;
+  /** Lifelines rendered inside the question card header area. */
+  lifelineDockProps?: {
+    quizLifelines: QuizPluginsConfig;
+    lifelineStates: Record<LifelineId, LifelineState>;
+    onActivate: (id: LifelineId) => void;
+    disabled: boolean;
+    activeId?: LifelineId | null;
+    label?: string;
+  };
 }
 
 const QuizCard = ({
@@ -41,6 +53,7 @@ const QuizCard = ({
   hiddenOptions = [],
   timer,
   sounds,
+  lifelineDockProps,
 }: QuizCardProps) => {
   const progress = ((currentIndex + 1) / total) * 100;
   const [scoreKey, setScoreKey] = useState(0);
@@ -88,6 +101,7 @@ const QuizCard = ({
             <span className="text-[11px] text-muted-foreground font-body tracking-wide">
               Question {currentIndex + 1} / {total}
             </span>
+
             <div className="flex items-center gap-2">
               {timer !== undefined && timer !== null && (
                 <TimerBadge
@@ -118,6 +132,19 @@ const QuizCard = ({
               transition={{ duration: 0.5, ease: "easeOut" }}
             />
           </div>
+
+          {lifelineDockProps && (
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <LifelineDock
+                quizLifelines={lifelineDockProps.quizLifelines}
+                lifelineStates={lifelineDockProps.lifelineStates}
+                onActivate={lifelineDockProps.onActivate}
+                disabled={lifelineDockProps.disabled}
+                activeId={lifelineDockProps.activeId ?? null}
+                label={lifelineDockProps.label ?? "Lifelines"}
+              />
+            </div>
+          )}
 
           {/* Optional image */}
           <QuestionMedia image={question?.image} />
@@ -168,23 +195,22 @@ const QuizCard = ({
                         ? { x: [0, -4, 4, -4, 4, 0], transition: { duration: 0.4 } }
                         : {}
                     }
-                    className={`relative overflow-hidden rounded-lg border px-5 py-3.5 text-left text-sm font-medium font-body transition-all duration-300 ${
-                      state === "idle"
-                        ? "border-border/50 bg-muted/20 hover:border-secondary/50 hover:bg-secondary/10 cursor-pointer"
-                        : state === "highlighted"
+                    className={`relative overflow-hidden rounded-lg border px-5 py-3.5 text-left text-sm font-medium font-body transition-all duration-300 ${state === "idle"
+                      ? "border-border/50 bg-muted/20 hover:border-secondary/50 hover:bg-secondary/10 cursor-pointer"
+                      : state === "highlighted"
                         ? "border-accent/40 bg-accent/10 ring-1 ring-accent/40 cursor-pointer"
                         : isCorrect
-                        ? "border-green-500/60 bg-green-900/20 shadow-[0_0_20px_hsla(142,76%,36%,0.25)] cursor-default"
-                        : isWrong
-                        ? "border-destructive/60 bg-red-900/20 cursor-default"
-                        : "border-border/30 opacity-40 cursor-default pointer-events-none"
-                    }`}
+                          ? "border-green-500/60 bg-green-900/20 shadow-[0_0_20px_hsla(142,76%,36%,0.25)] cursor-default"
+                          : isWrong
+                            ? "border-destructive/60 bg-red-900/20 cursor-default"
+                            : "border-border/30 opacity-40 cursor-default pointer-events-none"
+                      }`}
                     style={
                       state === "idle" || state === "highlighted"
                         ? undefined
                         : isCorrect
-                        ? { boxShadow: "0 0 20px hsla(142, 76%, 36%, 0.3)" }
-                        : undefined
+                          ? { boxShadow: "0 0 20px hsla(142, 76%, 36%, 0.3)" }
+                          : undefined
                     }
                   >
                     {isCorrect && (

@@ -119,8 +119,12 @@ const QuizInstructions = ({ totalQuestions, quizLifelines, onStart }: QuizInstru
       <section className="mb-8">
         <h2 className="font-display text-base sm:text-lg font-semibold mb-3">Rules</h2>
         <ul className="space-y-1.5 text-sm font-body text-muted-foreground">
-          <li>• Each lifeline can only be used <span className="text-foreground font-medium">once</span> per quiz</li>
-          <li>• Use them wisely — there are no second chances</li>
+          {visibleLifelines?.length > 0 &&
+            <>
+              <li>• Each lifeline can only be used <span className="text-foreground font-medium">once</span> per quiz</li>
+              <li>• Use them wisely — there are no second chances</li>
+            </>
+          }
           <li>• Your final score will be shown at the end</li>
         </ul>
       </section>
