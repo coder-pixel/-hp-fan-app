@@ -8,9 +8,9 @@ import MagicalParticles from "@/components/quiz/MagicalParticles";
 import QuizInstructions from "@/components/quiz/QuizInstructions";
 import QuizCard from "@/components/quiz/QuizCard";
 import QuizResult from "@/components/quiz/QuizResult";
-import LifelineBar from "@/components/quiz/lifelines/LifelineBar";
+import LifelineDock from "@/components/quiz/lifelines/LifelineDock";
 import LifelineEffects from "@/components/quiz/lifelines/LifelineEffects";
-import TimerPill from "@/components/quiz/TimerPill";
+import PollModal from "@/components/quiz/PollModal";
 import { quizzes } from "@/data/quizzes";
 import type { Quiz, QuizQuestion } from "@/types/quiz";
 import { QuizProvider, useQuiz } from "@/quiz-engine";
@@ -87,9 +87,6 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
         <>
           <LifelineEffects effect={activeEffect} onDismiss={actions?.dismissEffect} />
 
-          {config?.timer?.enabled && (
-            <TimerPill remaining={timer?.remaining} isFrozen={timer?.isFrozen} didTimeout={timer?.didTimeout} />
-          )}
 
           {felixActive && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center mb-3">
@@ -112,9 +109,22 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
             mapHighlight={mapHighlight}
             felixActive={felixActive}
             hiddenOptions={hiddenOptions}
+            timer={config?.timer?.enabled ? timer : null}
           />
 
-          <LifelineBar lifelineStates={lifelineStates} onActivate={actions?.useLifeline} disabled={selectedAnswer !== null} />
+          <LifelineDock
+            lifelineStates={lifelineStates}
+            onActivate={actions?.useLifeline}
+            disabled={selectedAnswer !== null}
+            activeId={activeEffect?.type ?? null}
+          />
+
+
+          <PollModal
+            open={activeEffect?.type === "legilimency" && !!activeEffect?.pollResults}
+            onClose={actions?.dismissEffect}
+            pollResults={activeEffect?.type === "legilimency" && activeEffect?.pollResults ? activeEffect.pollResults : []}
+          />
         </>
       )}
     </div>

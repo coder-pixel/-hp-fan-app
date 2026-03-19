@@ -3,6 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { QuizQuestion } from "@/types/quiz";
 import QuestionMedia from "./QuestionMedia";
 import FloatingScore from "./FloatingScore";
+import TimerBadge from "./TimerBadge";
+
+interface TimerState {
+  remaining: number;
+  isFrozen: boolean;
+  didTimeout: boolean;
+}
 
 interface QuizCardProps {
   question: QuizQuestion;
@@ -14,6 +21,8 @@ interface QuizCardProps {
   mapHighlight?: number | null;
   felixActive?: boolean;
   hiddenOptions?: number[];
+  /** Timer shown inside card when provided */
+  timer?: TimerState | null;
 }
 
 const QuizCard = ({
@@ -26,6 +35,7 @@ const QuizCard = ({
   mapHighlight,
   felixActive,
   hiddenOptions = [],
+  timer,
 }: QuizCardProps) => {
   const progress = ((currentIndex + 1) / total) * 100;
   const [scoreKey, setScoreKey] = useState(0);
@@ -41,23 +51,14 @@ const QuizCard = ({
     }
   };
 
-  const getOptionClass = (index: number) => {
+  const getOptionState = (index: number): "idle" | "highlighted" | "correct" | "wrong" | "disabled" => {
     if (selectedAnswer === null) {
-      const isHighlighted = mapHighlight === index;
-      return `border-border/50 hover:border-secondary/50 hover:bg-secondary/5 cursor-pointer ${isHighlighted ? "ring-1 ring-accent/50 bg-accent/5" : ""
-        }`;
+      return mapHighlight === index ? "highlighted" : "idle";
     }
-    // When felix is active, treat selected answer as correct
-    if (felixActive && index === selectedAnswer) {
-      return "border-green-500/60 bg-green-900/20 glow-gold";
-    }
-    if (question?.type === "multiple-choice" && index === question?.correctAnswer) {
-      return "border-green-500/60 bg-green-900/20 glow-gold";
-    }
-    if (index === selectedAnswer && index !== question?.correctAnswer) {
-      return "border-destructive/60 bg-red-900/20";
-    }
-    return "border-border/30 opacity-40 cursor-default";
+    if (felixActive && index === selectedAnswer) return "correct";
+    if (question?.type === "multiple-choice" && index === question?.correctAnswer) return "correct";
+    if (index === selectedAnswer && index !== question?.correctAnswer) return "wrong";
+    return "disabled";
   };
 
   return (
@@ -78,15 +79,24 @@ const QuizCard = ({
             <span className="text-[11px] text-muted-foreground font-body tracking-wide">
               Question {currentIndex + 1} / {total}
             </span>
-            {streak > 1 && (
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="text-[11px] font-semibold text-accent font-body flex items-center gap-1"
-              >
-                🔥 {streak} streak
-              </motion.span>
-            )}
+            <div className="flex items-center gap-2">
+              {timer !== undefined && timer !== null && (
+                <TimerBadge
+                  remaining={timer.remaining}
+                  isFrozen={timer.isFrozen}
+                  didTimeout={timer.didTimeout}
+                />
+              )}
+              {streak > 1 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="text-[11px] font-semibold text-accent font-body flex items-center gap-1"
+                >
+                  🔥 {streak} streak
+                </motion.span>
+              )}
+            </div>
           </div>
 
           {/* Progress bar */}
@@ -113,6 +123,9 @@ const QuizCard = ({
             <AnimatePresence>
               {question?.options?.map((option, index) => {
                 const isHidden = hiddenOptions?.includes(index);
+                const state = getOptionState(index);
+                const isDisabled = selectedAnswer !== null;
+
                 if (isHidden) {
                   return (
                     <motion.div
@@ -128,14 +141,52 @@ const QuizCard = ({
                     </motion.div>
                   );
                 }
+
+                const isCorrect = state === "correct";
+                const isWrong = state === "wrong";
+
                 return (
                   <motion.button
                     key={index}
                     layout
+                    type="button"
                     onClick={() => handleSelect(index)}
-                    disabled={selectedAnswer !== null}
-                    className={`relative overflow-hidden rounded-lg border px-5 py-3.5 text-left text-sm font-medium font-body transition-all duration-300 ${getOptionClass(index)}`}
+                    disabled={isDisabled}
+                    whileHover={!isDisabled ? { scale: 1.02 } : undefined}
+                    whileTap={!isDisabled ? { scale: 0.97 } : undefined}
+                    animate={
+                      isWrong
+                        ? { x: [0, -4, 4, -4, 4, 0], transition: { duration: 0.4 } }
+                        : {}
+                    }
+                    className={`relative overflow-hidden rounded-lg border px-5 py-3.5 text-left text-sm font-medium font-body transition-all duration-300 ${
+                      state === "idle"
+                        ? "border-border/50 bg-muted/20 hover:border-secondary/50 hover:bg-secondary/10 cursor-pointer"
+                        : state === "highlighted"
+                        ? "border-accent/40 bg-accent/10 ring-1 ring-accent/40 cursor-pointer"
+                        : isCorrect
+                        ? "border-green-500/60 bg-green-900/20 shadow-[0_0_20px_hsla(142,76%,36%,0.25)] cursor-default"
+                        : isWrong
+                        ? "border-destructive/60 bg-red-900/20 cursor-default"
+                        : "border-border/30 opacity-40 cursor-default pointer-events-none"
+                    }`}
+                    style={
+                      state === "idle" || state === "highlighted"
+                        ? undefined
+                        : isCorrect
+                        ? { boxShadow: "0 0 20px hsla(142, 76%, 36%, 0.3)" }
+                        : undefined
+                    }
                   >
+                    {isCorrect && (
+                      <motion.span
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                        initial={{ x: "-100%" }}
+                        animate={{ x: "100%" }}
+                        transition={{ duration: 0.6, ease: "easeInOut" }}
+                        aria-hidden
+                      />
+                    )}
                     <span className="relative z-10 text-left">{option?.text}</span>
                   </motion.button>
                 );
