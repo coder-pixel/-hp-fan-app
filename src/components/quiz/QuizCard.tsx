@@ -37,6 +37,7 @@ interface QuizCardProps {
     onActivate: (id: LifelineId) => void;
     disabled: boolean;
     activeId?: LifelineId | null;
+    allowUsedActivation?: (id: LifelineId) => boolean;
     label?: string;
   };
 }
@@ -93,14 +94,21 @@ const QuizCard = ({
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -60 }}
           transition={{ duration: 0.35, ease: "easeInOut" }}
-          className="glass-card p-7 sm:p-9 w-full"
+          className={`glass-card p-7 sm:p-9 w-full ${felixActive ? "border border-accent/30" : ""}`}
           style={felixActive ? { boxShadow: "0 0 30px hsla(43, 72%, 52%, 0.2)" } : {}}
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
-            <span className="text-[11px] text-muted-foreground font-body tracking-wide">
-              Question {currentIndex + 1} / {total}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-muted-foreground font-body tracking-wide">
+                Question {currentIndex + 1} / {total}
+              </span>
+              {felixActive && (
+                <span className="text-[10px] font-body font-semibold px-3 py-1 rounded-full border border-accent/40 bg-accent/10 text-accent">
+                  ✨ Felix Felicis Active
+                </span>
+              )}
+            </div>
 
             <div className="flex items-center gap-2">
               {timer !== undefined && timer !== null && (
@@ -141,6 +149,7 @@ const QuizCard = ({
                 onActivate={lifelineDockProps.onActivate}
                 disabled={lifelineDockProps.disabled}
                 activeId={lifelineDockProps.activeId ?? null}
+                allowUsedActivation={lifelineDockProps.allowUsedActivation}
                 label={lifelineDockProps.label ?? "Lifelines"}
               />
             </div>

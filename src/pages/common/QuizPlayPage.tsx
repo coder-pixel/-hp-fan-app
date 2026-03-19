@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
@@ -10,12 +10,14 @@ import QuizInstructions from "@/components/quiz/QuizInstructions";
 import QuizCard from "@/components/quiz/QuizCard";
 import QuizResult from "@/components/quiz/QuizResult";
 import LifelineEffects from "@/components/quiz/lifelines/LifelineEffects";
+import DumbledoreModal from "@/components/quiz/DumbledoreModal";
 import PollModal from "@/components/quiz/PollModal";
 import { quizzes } from "@/data/quizzes";
 import type { Quiz, QuizQuestion } from "@/types/quiz";
 import { QuizProvider, useQuiz } from "@/quiz-engine";
 import { Button } from "@/components/ui/button";
 import { setQuizSoundsEnabled } from "@/lib/quizSounds";
+import { toast } from "@/hooks/use-toast";
 
 function toQuizQuestions(quiz: Quiz): QuizQuestion[] {
   // Engine + lifelines expect 4-option multiple-choice questions (QuizQuestion).
@@ -56,10 +58,56 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
   const currentQuestion = questions?.[questionIndex];
   const soundsAllowed = config?.sounds?.enabled !== false;
   const [audioOn, setAudioOn] = useState<boolean>(soundsAllowed);
+  const [askDumbledoreModalOpen, setAskDumbledoreModalOpen] = useState(false);
+  const askDumbledoreQuestionIndexRef = useRef<number | null>(null);
+  const [pollModalOpen, setPollModalOpen] = useState(false);
+  const legilimencyQuestionIndexRef = useRef<number | null>(null);
+  const prevHiddenOptionsLenRef = useRef(0);
+  const prevFelixActiveRef = useRef(false);
 
   useEffect(() => {
     setQuizSoundsEnabled(soundsAllowed && audioOn);
   }, [soundsAllowed, audioOn]);
+
+  useEffect(() => {
+    const hiddenOptionsLen = hiddenOptions?.length ?? 0;
+    if (hiddenOptionsLen === 2 && prevHiddenOptionsLenRef.current !== 2) {
+      toast({ title: "2 incorrect options have been removed" });
+    }
+    prevHiddenOptionsLenRef.current = hiddenOptionsLen;
+  }, [hiddenOptions]);
+
+  useEffect(() => {
+    if (felixActive && !prevFelixActiveRef.current) {
+      toast({
+        title: "Felix Felicis Active",
+        description: "Next answer guaranteed correct!",
+      });
+    }
+    prevFelixActiveRef.current = felixActive;
+  }, [felixActive]);
+
+  useEffect(() => {
+    if (activeEffect?.type === "askDumbledore" && activeEffect?.hint) {
+      askDumbledoreQuestionIndexRef.current = questionIndex;
+      setAskDumbledoreModalOpen(true);
+    }
+  }, [activeEffect?.type, activeEffect?.hint, questionIndex]);
+
+  useEffect(() => {
+    if (activeEffect?.type === "legilimency" && activeEffect?.pollResults) {
+      legilimencyQuestionIndexRef.current = questionIndex;
+      setPollModalOpen(true);
+    }
+  }, [activeEffect?.type, activeEffect?.pollResults, questionIndex]);
+
+  useEffect(() => {
+    // Moving to another question: reset all per-question modal states.
+    setAskDumbledoreModalOpen(false);
+    askDumbledoreQuestionIndexRef.current = null;
+    setPollModalOpen(false);
+    legilimencyQuestionIndexRef.current = null;
+  }, [questionIndex]);
 
   if (status === "instructions") {
     return (
@@ -78,15 +126,15 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
 
   return (
     <div className="relative z-10 mx-auto max-w-2xl">
-      {/* <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
-        <span className="block text-xs font-body font-medium tracking-widest uppercase text-accent/70 mb-3">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
+        <span className="text-xs font-body font-medium tracking-widest uppercase text-accent/70 mb-3">
           {quiz?.category}
         </span>
         <h1 className="font-display text-3xl sm:text-4xl font-bold mb-2">{config?.title}</h1>
         <p className="text-muted-foreground font-body text-sm sm:text-base">
           Score: <span className="text-foreground font-semibold">{score}</span>
         </p>
-      </motion.div> */}
+      </motion.div>
 
       {status === "finished" ? (
         <QuizResult quizTitle={config?.title} quizLink={window.location.href} score={score} total={questions?.length} onRestart={actions?.restartQuiz} />
@@ -104,7 +152,17 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
               {audioOn ? <Volume2 className="h-4 w-4 text-accent" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
             </Button>
           )}
-          <LifelineEffects effect={activeEffect} onDismiss={actions?.dismissEffect} />
+          <LifelineEffects effect={activeEffect} />
+          <DumbledoreModal
+            open={
+              askDumbledoreModalOpen &&
+              activeEffect?.type === "askDumbledore" &&
+              !!activeEffect?.hint &&
+              askDumbledoreQuestionIndexRef.current === questionIndex
+            }
+            hint={activeEffect?.type === "askDumbledore" ? activeEffect?.hint ?? "" : ""}
+            onClose={() => setAskDumbledoreModalOpen(false)}
+          />
 
           {config?.timer?.enabled && timer?.didTimeout && (
             <motion.div
@@ -123,17 +181,6 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
             </motion.div>
           )}
 
-          {felixActive && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center mb-3">
-              <span
-                className="inline-block text-xs font-body font-semibold px-3 py-1 rounded-full border border-accent/40 text-accent"
-                style={{ boxShadow: "0 0 16px hsla(43, 72%, 52%, 0.3)" }}
-              >
-                ✨ Felix Felicis Active — Next answer guaranteed correct!
-              </span>
-            </motion.div>
-          )}
-
           <QuizCard
             question={currentQuestion}
             currentIndex={questionIndex}
@@ -149,17 +196,57 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
             lifelineDockProps={{
               quizLifelines: quiz?.lifelineConfig,
               lifelineStates,
-              onActivate: actions?.useLifeline,
+              onActivate: (id) => {
+                if (
+                  id === "askDumbledore" &&
+                  activeEffect?.type === "askDumbledore" &&
+                  !!activeEffect?.hint &&
+                  askDumbledoreQuestionIndexRef.current === questionIndex
+                ) {
+                  setAskDumbledoreModalOpen(true);
+                  return;
+                }
+                if (
+                  id === "legilimency" &&
+                  activeEffect?.type === "legilimency" &&
+                  !!activeEffect?.pollResults &&
+                  legilimencyQuestionIndexRef.current === questionIndex
+                ) {
+                  setPollModalOpen(true);
+                  return;
+                }
+                actions?.useLifeline(id);
+              },
               disabled: selectedAnswer !== null,
               activeId: activeEffect?.type ?? null,
+              allowUsedActivation: (id) => {
+                if (
+                  id === "askDumbledore" &&
+                  activeEffect?.type === "askDumbledore" &&
+                  !!activeEffect?.hint &&
+                  askDumbledoreQuestionIndexRef.current === questionIndex
+                ) return true;
+                if (
+                  id === "legilimency" &&
+                  activeEffect?.type === "legilimency" &&
+                  !!activeEffect?.pollResults &&
+                  legilimencyQuestionIndexRef.current === questionIndex
+                ) return true;
+                return false;
+              },
               label: "Lifelines",
             }}
           />
 
 
           <PollModal
-            open={activeEffect?.type === "legilimency" && !!activeEffect?.pollResults}
-            onClose={actions?.dismissEffect}
+            open={
+              pollModalOpen &&
+              activeEffect?.type === "legilimency" &&
+              !!activeEffect?.pollResults &&
+              legilimencyQuestionIndexRef.current === questionIndex
+            }
+            onClose={() => setPollModalOpen(false)}
             pollResults={activeEffect?.type === "legilimency" && activeEffect?.pollResults ? activeEffect.pollResults : []}
           />
         </>

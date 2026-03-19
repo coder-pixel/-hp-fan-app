@@ -12,6 +12,7 @@ interface LifelineDockProps {
   /** Optional: which lifeline is currently "active" (e.g. showing effect) for glowing border */
   activeId?: LifelineId | null;
   label?: string | null;
+  allowUsedActivation?: (id: LifelineId) => boolean;
 }
 
 export default function LifelineDock({
@@ -21,6 +22,7 @@ export default function LifelineDock({
   disabled,
   activeId = null,
   label = "Lifelines",
+  allowUsedActivation,
 }: LifelineDockProps) {
   // Only show lifelines that exist in registry and are not disabled by quiz config (enabled: false).
   const timerEnabled = !!quizLifelines?.timer?.enabled;
@@ -66,6 +68,7 @@ export default function LifelineDock({
               definition={def}
               used={state?.usedCount >= def?.maxUsagePerGame}
               disabled={disabled}
+              allowUsedActivation={allowUsedActivation?.(id) ?? false}
               active={activeId === id}
               remainingCount={remainingCount}
               onActivate={() => onActivate(id as LifelineId)}

@@ -171,14 +171,14 @@ export const hpTrivia: Quiz = {
   category: "Harry Potter",
   type: "multiple-choice",
   lifelineConfig: {
-    timer: { enabled: true, secondsPerQuestion: 40 },
+    timer: { enabled: false, secondsPerQuestion: 40 },
     maraudersMap: {
       enabled: false,
       maxUsagePerGame: 1,
       usageCount: 0,
     },
     askDumbledore: {
-      enabled: false,
+      enabled: true,
       maxUsagePerGame: 1,
       usageCount: 0,
     },
