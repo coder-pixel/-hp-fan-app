@@ -82,7 +82,7 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
       </motion.div> */}
 
       {status === "finished" ? (
-        <QuizResult score={score} total={questions?.length} onRestart={actions?.restartQuiz} />
+        <QuizResult quizTitle={config?.title} quizLink={window.location.href} score={score} total={questions?.length} onRestart={actions?.restartQuiz} />
       ) : (
         <>
           <LifelineEffects effect={activeEffect} onDismiss={actions?.dismissEffect} />

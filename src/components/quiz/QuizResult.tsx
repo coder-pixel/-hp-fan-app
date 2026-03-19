@@ -2,19 +2,21 @@ import { motion } from "framer-motion";
 import { RotateCcw, Share2 } from "lucide-react";
 import NextQuizCard from "./NextQuizCard";
 
-interface QuizletResultProps {
+interface QuizResultProps {
+  quizTitle: string;
+  quizLink: string;
   score: number;
   total: number;
   onRestart: () => void;
 }
 
-const QuizletResult = ({ score, total, onRestart }: QuizletResultProps) => {
+const QuizResult = ({ quizTitle, quizLink, score, total, onRestart }: QuizResultProps) => {
   const percentage = Math.round((score / total) * 100);
 
   const handleShare = () => {
-    const text = `⚡ I scored ${score}/${total} (${percentage}%) on Potterwiki Quizlet! Can you beat me?`;
+    const text = `⚡ I scored ${score}/${total} (${percentage}%) on ${!quizTitle ? "Potterwiki Quizlet" : quizTitle}! Can you beat me? Play it now: ${quizLink}`;
     if (navigator.share) {
-      navigator.share({ title: "Potterwiki Quizlet", text });
+      navigator.share({ title: !quizTitle ? "Potterwiki Quizlet" : quizTitle, url: quizLink, text });
     } else {
       navigator.clipboard.writeText(text);
     }
@@ -96,4 +98,4 @@ const QuizletResult = ({ score, total, onRestart }: QuizletResultProps) => {
   );
 };
 
-export default QuizletResult;
+export default QuizResult;
