@@ -7,6 +7,8 @@ import Index from "./pages/common/Index.tsx";
 import NotFound from "./pages/common/NotFound.tsx";
 import QuizletPage from "./pages/common/QuizletPage.tsx";
 import ThisOrThatPage from "./pages/common/ThisOrThatPage.tsx";
+import QuizzesPage from "./pages/common/QuizzesPage.tsx";
+import QuizPlayPage from "./pages/common/QuizPlayPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +21,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/quizlet" element={<QuizletPage />} />
+          <Route path="/quizlet/:id" element={<QuizPlayPage />} />
+          <Route path="/quizzes" element={<QuizzesPage />} />
           <Route path="/this-or-that" element={<ThisOrThatPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

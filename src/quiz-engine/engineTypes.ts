@@ -17,6 +17,8 @@ export interface QuizConfig {
   id: string;
   title: string;
   timer?: QuizTimerConfig;
+  /** Optional question set; defaults to the built-in quizletQuestions. */
+  questions?: QuizletQuestion[];
 }
 
 export interface TimerState {

@@ -40,6 +40,7 @@ export function createInitialState(
   const secondsPerQuestion = clampTimerSeconds(
     timerCfg.secondsPerQuestion ?? 40,
   );
+  const sourceQuestions = config.questions ?? quizletQuestions;
 
   return {
     status: "instructions",
@@ -47,7 +48,7 @@ export function createInitialState(
       ...config,
       timer: { enabled: !!timerCfg.enabled, secondsPerQuestion },
     },
-    questions: shuffle(quizletQuestions),
+    questions: shuffle(sourceQuestions),
     questionIndex: 0,
     score: 0,
     streak: 0,

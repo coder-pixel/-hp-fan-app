@@ -3,12 +3,13 @@ import { Map, MessageCircle, FlaskConical, Eye, Zap, Flame, BookOpen } from "luc
 import { lifelineRegistry } from "./lifelines/lifelineRegistry";
 import { enabledLifelines } from "./lifelines/lifelineConfig";
 import type { LifelineId } from "./lifelines/lifelineTypes";
+import { Button } from "../ui/button";
 
 const iconMap: Record<string, React.FC<{ size?: number; className?: string }>> = {
-  Map: Map as any,
-  MessageCircle: MessageCircle as any,
-  FlaskConical: FlaskConical as any,
-  Eye: Eye as any,
+  Map: Map as React.FC<{ size?: number; className?: string }>,
+  MessageCircle: MessageCircle as React.FC<{ size?: number; className?: string }>,
+  FlaskConical: FlaskConical as React.FC<{ size?: number; className?: string }>,
+  Eye: Eye as React.FC<{ size?: number; className?: string }>,
 };
 
 interface QuizInstructionsProps {
@@ -17,8 +18,8 @@ interface QuizInstructionsProps {
 }
 
 const QuizInstructions = ({ totalQuestions, onStart }: QuizInstructionsProps) => {
-  const visibleLifelines = (Object.keys(lifelineRegistry) as LifelineId[]).filter(
-    (id) => enabledLifelines[id]
+  const visibleLifelines = (Object.keys(lifelineRegistry) as LifelineId[])?.filter(
+    (id) => enabledLifelines?.[id]
   );
 
   return (
@@ -26,7 +27,7 @@ const QuizInstructions = ({ totalQuestions, onStart }: QuizInstructionsProps) =>
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="glass-card p-6 sm:p-10 w-full max-w-xl mx-auto"
+      className="glass-card p-6 sm:p-10 w-full mx-auto"
     >
       <h1 className="font-display text-2xl sm:text-3xl font-bold text-center mb-2">
         Wizard Quiz <span className="text-gradient-gold">Instructions</span>
@@ -34,6 +35,13 @@ const QuizInstructions = ({ totalQuestions, onStart }: QuizInstructionsProps) =>
       <p className="text-center text-muted-foreground font-body text-sm mb-8">
         Read carefully before you begin your magical challenge.
       </p>
+
+      <Button
+        onClick={onStart}
+        className="w-full btn-primary-gold text-sm py-3.5 font-semibold mb-8"
+      >
+        Start Quiz →
+      </Button>
 
       {/* How it works */}
       <section className="mb-8">
@@ -58,27 +66,33 @@ const QuizInstructions = ({ totalQuestions, onStart }: QuizInstructionsProps) =>
       </section>
 
       {/* Lifelines */}
-      {visibleLifelines.length > 0 && (
+      {visibleLifelines?.length > 0 && (
         <section className="mb-8">
           <h2 className="font-display text-base sm:text-lg font-semibold mb-4 flex items-center gap-2">
             <FlaskConical size={18} className="text-secondary" />
             Your Lifelines
           </h2>
-          <div className="grid gap-3">
-            {visibleLifelines.map((id) => {
-              const def = lifelineRegistry[id];
-              const Icon = iconMap[def.icon] ?? Map;
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {visibleLifelines?.map((id) => {
+              const def = lifelineRegistry?.[id];
+              const Icon = iconMap[def?.icon] ?? Map;
               return (
                 <div
                   key={id}
-                  className="flex items-start gap-3 p-3 rounded-lg bg-muted/20 border border-border/30"
+                  className="rounded-lg border border-border/30 bg-muted/15 p-3 transition-colors hover:bg-muted/25"
                 >
-                  <div className="w-8 h-8 rounded-md flex items-center justify-center bg-secondary/10 border border-secondary/20 shrink-0">
-                    <Icon size={16} className="text-accent" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold font-body text-foreground">{def.displayName}</p>
-                    <p className="text-xs font-body text-muted-foreground leading-relaxed">{def.description}</p>
+                  <div className="flex flex-col items-center text-center gap-2 sm:flex-row sm:items-start sm:text-left sm:gap-3">
+                    <div className="w-9 h-9 rounded-md flex items-center justify-center bg-secondary/10 border border-secondary/20 shrink-0">
+                      <Icon size={16} className="text-accent" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold font-body text-foreground sm:truncate">
+                        {def?.displayName}
+                      </p>
+                      <p className="text-xs font-body text-muted-foreground leading-relaxed sm:line-clamp-2">
+                        {def?.description}
+                      </p>
+                    </div>
                   </div>
                 </div>
               );
@@ -97,12 +111,12 @@ const QuizInstructions = ({ totalQuestions, onStart }: QuizInstructionsProps) =>
         </ul>
       </section>
 
-      <button
+      <Button
         onClick={onStart}
         className="w-full btn-primary-gold text-sm py-3.5 font-semibold"
       >
         Start Quiz →
-      </button>
+      </Button>
     </motion.div>
   );
 };
