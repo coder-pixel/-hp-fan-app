@@ -1,101 +1,156 @@
+/**
+ * ═══════════════════════════════════════════════════════════════
+ *  Potter Wiki — GLOBAL STYLES & DESIGN TOKENS
+ * ═══════════════════════════════════════════════════════════════
+ *
+ *  ARCHITECTURE
+ *  ────────────
+ *  1. Font imports
+ *  2. Tailwind layers (base → components → utilities)
+ *  3. :root variables = DEFAULT THEME (Wizarding Dark)
+ *  4. [data-theme] blocks = ALTERNATE THEMES
+ *
+ *  HOW TO ADD A NEW THEME
+ *  ──────────────────────
+ *  1. Copy an existing [data-theme="..."] block
+ *  2. Override the variables you want to change
+ *  3. Apply with: <html data-theme="your-theme">
+ *  4. No Tailwind or component changes needed
+ *
+ *  COLOR FORMAT
+ *  ────────────
+ *  All color variables use raw HSL channel values (H S% L%)
+ *  so Tailwind opacity modifiers work: bg-primary/50
+ */
+
 @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Montserrat:wght@300;400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════════════════════════
+  *  DEFAULT THEME — Wizarding Dark
+  *  Deep obsidian blacks, royal purples, and warm gold accents.
+  * ═══════════════════════════════════════════════════════════════ */
 @layer base {
   :root {
-    /* App surface + default text (drives Tailwind `bg-background` + `text-foreground` on `body`) */
+    /* ── Core Surfaces ──────────────────────────────────────── */
+    /** Page background — near-black obsidian */
     --background: 0 0% 2%;
+    /** Default text on background — soft silver */
     --foreground: 214 32% 91%;
 
-    /* Cards (used by `bg-card` and `.glass-card`; foreground is default text inside cards) */
+    /** Card / panel surfaces — slightly lighter than background */
     --card: 0 0% 7%;
     --card-foreground: 214 32% 91%;
 
-    /* Popovers/menus/tooltips (ShadCN/Radix surfaces; e.g. dropdowns, tooltips) */
+    /** Popover / dropdown surfaces — matches card */
     --popover: 0 0% 7%;
     --popover-foreground: 214 32% 91%;
 
-    /* Primary action color (used by ShadCN `Button` default + other `bg-primary` surfaces) */
+    /* ── Brand Colors ───────────────────────────────────────── */
+    /** Primary — deep indigo, main actions & CTA */
     --primary: 235 45% 20%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary accent (used by `bg-secondary` and purple UI highlights / hover borders) */
+    /** Secondary — royal purple, secondary actions & accents */
     --secondary: 270 66% 35%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Muted surfaces + helper text (e.g. `text-muted-foreground` used across captions/subtitles) */
+    /* ── Semantic States ────────────────────────────────────── */
+    /** Muted — subdued surfaces & disabled text */
     --muted: 235 20% 15%;
     --muted-foreground: 214 20% 60%;
 
-    /* Gold accent (used for highlights, rings, and `.btn-primary-gold` text color) */
+    /** Accent — warm gold, highlights & score display */
     --accent: 43 72% 52%;
     --accent-foreground: 0 0% 2%;
 
-    /* Error/destructive states (e.g. incorrect answers, destructive button variants) */
+    /** Destructive — red, errors & wrong answers */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    /* Global borders/inputs/focus ring (Tailwind `border-border`, form borders, focus outlines) */
+    /** Success — green, correct answers & positive feedback */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    /* ── Borders & Focus ────────────────────────────────────── */
+    /** Default border color — subtle purple tint */
     --border: 270 30% 20%;
+    /** Input border — matches general border */
     --input: 270 30% 20%;
+    /** Focus ring — gold for visibility */
     --ring: 43 72% 52%;
 
-    /* Default rounding for ShadCN components (e.g. cards, buttons, inputs) */
+    /* ── Layout ──────────────────────────────────────────────── */
+    /** Global border radius base */
     --radius: 0.75rem;
 
-    /* Custom tokens */
-    /* Raw brand palette primitives (used when composing gradients/shadows in this file) */
+    /* ── Extended Magical Tokens ─────────────────────────────── */
+    /** Gold — warm amber for scores, CTA, streak fire */
     --gold: 43 72% 52%;
+    /** Gold glow — lighter variant for box-shadow effects */
     --gold-glow: 43 80% 60%;
+    /** Deep indigo — gradient endpoints, deep BGs */
     --indigo-deep: 235 45% 20%;
+    /** Royal purple — gradient endpoints, magical effects */
     --purple-royal: 270 66% 35%;
+    /** Obsidian — true-black base */
     --obsidian: 0 0% 2%;
+    /** Silver — light text, subtle headings */
     --silver: 214 32% 91%;
 
-    /* Background gradients (used by hero/backdrops + glass cards) */
+    /* ── Composite Tokens (gradients & shadows) ──────────────
+      *  These use full hsl() syntax since they're used as
+      *  complete CSS values, not via Tailwind color utilities.
+      */
+
+    /** Hero section gradient — obsidian → indigo → purple */
     --gradient-hero: linear-gradient(
       135deg,
       hsl(0 0% 2%) 0%,
       hsl(235 45% 12%) 50%,
       hsl(270 40% 10%) 100%
     );
+    /** Card background gradient — dark glass effect */
     --gradient-card: linear-gradient(
       145deg,
       hsla(0 0% 7% / 0.9),
       hsla(235 45% 10% / 0.6)
     );
-    /* Gold gradient (used by `.text-gradient-gold` + `.btn-primary-gold`) */
+    /** Gold gradient — warm CTA & score highlights */
     --gradient-gold: linear-gradient(135deg, hsl(43 72% 52%), hsl(35 80% 45%));
+    /** Purple gradient — secondary actions & progress bars */
     --gradient-purple: linear-gradient(
       135deg,
       hsl(270 66% 35%),
       hsl(235 45% 30%)
     );
-    /* Purple gradient (used by `.text-gradient-purple` + progress/fill accents) */
 
-    /* Glow + elevation shadows (used by `.glow-*`, `.glass-card`, and primary CTA hover states) */
+    /** Gold glow shadow — subtle warm halo */
     --shadow-glow-gold: 0 0 20px hsla(43 72% 52% / 0.3);
+    /** Gold glow shadow — strong, for hover states */
     --shadow-glow-gold-strong:
       0 0 30px hsla(43 72% 52% / 0.4), 0 0 60px hsla(43 72% 52% / 0.15);
+    /** Purple glow shadow — subtle magical halo */
     --shadow-glow-purple: 0 0 20px hsla(270 66% 35% / 0.3);
+    /** Purple glow shadow — strong, for focus/hover */
     --shadow-glow-purple-strong:
       0 0 30px hsla(270 66% 35% / 0.4), 0 0 60px hsla(270 66% 35% / 0.15);
-    /* Default card shadow (used by `.glass-card`) */
+    /** Card elevation shadow */
     --shadow-card:
       0 4px 24px -4px hsla(0 0% 0% / 0.5), 0 0 0 1px hsla(270 30% 20% / 0.3);
-    /* Card hover shadow (used by `.glass-card-hover:hover`) */
+    /** Card hover shadow — purple-tinted lift */
     --shadow-card-hover:
       0 8px 40px -8px hsla(270 66% 35% / 0.35),
       0 0 0 1px hsla(270 30% 30% / 0.5);
 
-    /* Typography tokens (used by `body` via Tailwind `font-body`, and headings via base `h1..h6`) */
+    /* ── Typography ──────────────────────────────────────────── */
     --font-display: "Cinzel", serif;
     --font-body: "Montserrat", sans-serif;
 
-    /* Sidebar theme tokens (consumed by ShadCN `sidebar` component styles, if/when used) */
+    /* ── Sidebar Component ───────────────────────────────────── */
     --sidebar-background: 0 0% 5%;
     --sidebar-foreground: 214 32% 91%;
     --sidebar-primary: 235 45% 20%;
@@ -107,6 +162,205 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+  *  THEME: Gryffindor
+  *  Crimson reds and warm gold — courage & bravery
+  *  Apply: <html data-theme="gryffindor">
+  * ═══════════════════════════════════════════════════════════════ */
+[data-theme="gryffindor"] {
+  --background: 0 0% 4%;
+  --card: 0 20% 10%;
+  --primary: 0 72% 30%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 35 80% 40%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 43 85% 55%;
+  --accent-foreground: 0 0% 5%;
+  --muted: 0 15% 14%;
+  --border: 0 30% 22%;
+  --input: 0 30% 22%;
+  --gold: 43 85% 55%;
+  --gold-glow: 43 90% 62%;
+  --purple-royal: 0 72% 30%;
+  --indigo-deep: 0 60% 20%;
+  --gradient-hero: linear-gradient(
+    135deg,
+    hsl(0 0% 4%) 0%,
+    hsl(0 50% 12%) 50%,
+    hsl(35 40% 10%) 100%
+  );
+  --gradient-card: linear-gradient(
+    145deg,
+    hsla(0 20% 10% / 0.9),
+    hsla(0 40% 10% / 0.6)
+  );
+  --gradient-gold: linear-gradient(135deg, hsl(43 85% 55%), hsl(35 80% 45%));
+  --gradient-purple: linear-gradient(135deg, hsl(0 72% 30%), hsl(0 60% 20%));
+  --shadow-glow-gold: 0 0 20px hsla(43 85% 55% / 0.3);
+  --shadow-glow-gold-strong:
+    0 0 30px hsla(43 85% 55% / 0.4), 0 0 60px hsla(43 85% 55% / 0.15);
+  --shadow-glow-purple: 0 0 20px hsla(0 72% 30% / 0.3);
+  --shadow-glow-purple-strong:
+    0 0 30px hsla(0 72% 30% / 0.4), 0 0 60px hsla(0 72% 30% / 0.15);
+  --shadow-card:
+    0 4px 24px -4px hsla(0 0% 0% / 0.5), 0 0 0 1px hsla(0 30% 22% / 0.3);
+  --shadow-card-hover:
+    0 8px 40px -8px hsla(0 72% 30% / 0.35), 0 0 0 1px hsla(0 30% 30% / 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+  *  THEME: Slytherin
+  *  Deep emerald greens and silver — ambition & cunning
+  *  Apply: <html data-theme="slytherin">
+  * ═══════════════════════════════════════════════════════════════ */
+[data-theme="slytherin"] {
+  --background: 150 10% 3%;
+  --card: 150 15% 8%;
+  --primary: 150 60% 22%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 20% 50%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 210 30% 75%;
+  --accent-foreground: 150 40% 8%;
+  --muted: 150 15% 13%;
+  --border: 150 25% 18%;
+  --input: 150 25% 18%;
+  --gold: 210 30% 75%;
+  --gold-glow: 210 35% 82%;
+  --purple-royal: 150 60% 22%;
+  --indigo-deep: 150 50% 15%;
+  --gradient-hero: linear-gradient(
+    135deg,
+    hsl(150 10% 3%) 0%,
+    hsl(150 40% 10%) 50%,
+    hsl(210 20% 10%) 100%
+  );
+  --gradient-card: linear-gradient(
+    145deg,
+    hsla(150 15% 8% / 0.9),
+    hsla(150 30% 8% / 0.6)
+  );
+  --gradient-gold: linear-gradient(135deg, hsl(210 30% 75%), hsl(210 25% 65%));
+  --gradient-purple: linear-gradient(
+    135deg,
+    hsl(150 60% 22%),
+    hsl(150 50% 15%)
+  );
+  --shadow-glow-gold: 0 0 20px hsla(210 30% 75% / 0.3);
+  --shadow-glow-gold-strong:
+    0 0 30px hsla(210 30% 75% / 0.4), 0 0 60px hsla(210 30% 75% / 0.15);
+  --shadow-glow-purple: 0 0 20px hsla(150 60% 22% / 0.3);
+  --shadow-glow-purple-strong:
+    0 0 30px hsla(150 60% 22% / 0.4), 0 0 60px hsla(150 60% 22% / 0.15);
+  --shadow-card:
+    0 4px 24px -4px hsla(0 0% 0% / 0.5), 0 0 0 1px hsla(150 25% 18% / 0.3);
+  --shadow-card-hover:
+    0 8px 40px -8px hsla(150 60% 22% / 0.35), 0 0 0 1px hsla(150 25% 25% / 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+  *  THEME: Ravenclaw
+  *  Deep blue and bronze — wisdom & intellect
+  *  Apply: <html data-theme="ravenclaw">
+  * ═══════════════════════════════════════════════════════════════ */
+[data-theme="ravenclaw"] {
+  --background: 220 20% 4%;
+  --card: 220 25% 10%;
+  --primary: 220 60% 30%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 30 50% 45%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 30 60% 55%;
+  --accent-foreground: 220 40% 8%;
+  --muted: 220 18% 14%;
+  --border: 220 30% 22%;
+  --input: 220 30% 22%;
+  --gold: 30 60% 55%;
+  --gold-glow: 30 65% 62%;
+  --purple-royal: 220 60% 30%;
+  --indigo-deep: 220 50% 20%;
+  --gradient-hero: linear-gradient(
+    135deg,
+    hsl(220 20% 4%) 0%,
+    hsl(220 45% 14%) 50%,
+    hsl(30 30% 10%) 100%
+  );
+  --gradient-card: linear-gradient(
+    145deg,
+    hsla(220 25% 10% / 0.9),
+    hsla(220 40% 10% / 0.6)
+  );
+  --gradient-gold: linear-gradient(135deg, hsl(30 60% 55%), hsl(30 55% 45%));
+  --gradient-purple: linear-gradient(
+    135deg,
+    hsl(220 60% 30%),
+    hsl(220 50% 20%)
+  );
+  --shadow-glow-gold: 0 0 20px hsla(30 60% 55% / 0.3);
+  --shadow-glow-gold-strong:
+    0 0 30px hsla(30 60% 55% / 0.4), 0 0 60px hsla(30 60% 55% / 0.15);
+  --shadow-glow-purple: 0 0 20px hsla(220 60% 30% / 0.3);
+  --shadow-glow-purple-strong:
+    0 0 30px hsla(220 60% 30% / 0.4), 0 0 60px hsla(220 60% 30% / 0.15);
+  --shadow-card:
+    0 4px 24px -4px hsla(0 0% 0% / 0.5), 0 0 0 1px hsla(220 30% 22% / 0.3);
+  --shadow-card-hover:
+    0 8px 40px -8px hsla(220 60% 30% / 0.35), 0 0 0 1px hsla(220 30% 30% / 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+  *  THEME: Hufflepuff
+  *  Warm yellow and earthy black — loyalty & patience
+  *  Apply: <html data-theme="hufflepuff">
+  * ═══════════════════════════════════════════════════════════════ */
+[data-theme="hufflepuff"] {
+  --background: 40 10% 4%;
+  --card: 40 15% 9%;
+  --primary: 40 70% 42%;
+  --primary-foreground: 0 0% 5%;
+  --secondary: 30 30% 25%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 45 85% 58%;
+  --accent-foreground: 40 40% 8%;
+  --muted: 40 12% 14%;
+  --border: 40 25% 20%;
+  --input: 40 25% 20%;
+  --gold: 45 85% 58%;
+  --gold-glow: 45 90% 65%;
+  --purple-royal: 40 70% 42%;
+  --indigo-deep: 30 30% 18%;
+  --gradient-hero: linear-gradient(
+    135deg,
+    hsl(40 10% 4%) 0%,
+    hsl(40 40% 12%) 50%,
+    hsl(30 25% 10%) 100%
+  );
+  --gradient-card: linear-gradient(
+    145deg,
+    hsla(40 15% 9% / 0.9),
+    hsla(40 30% 8% / 0.6)
+  );
+  --gradient-gold: linear-gradient(135deg, hsl(45 85% 58%), hsl(40 80% 48%));
+  --gradient-purple: linear-gradient(135deg, hsl(40 70% 42%), hsl(30 30% 25%));
+  --shadow-glow-gold: 0 0 20px hsla(45 85% 58% / 0.3);
+  --shadow-glow-gold-strong:
+    0 0 30px hsla(45 85% 58% / 0.4), 0 0 60px hsla(45 85% 58% / 0.15);
+  --shadow-glow-purple: 0 0 20px hsla(40 70% 42% / 0.3);
+  --shadow-glow-purple-strong:
+    0 0 30px hsla(40 70% 42% / 0.4), 0 0 60px hsla(40 70% 42% / 0.15);
+  --shadow-card:
+    0 4px 24px -4px hsla(0 0% 0% / 0.5), 0 0 0 1px hsla(40 25% 20% / 0.3);
+  --shadow-card-hover:
+    0 8px 40px -8px hsla(40 70% 42% / 0.35), 0 0 0 1px hsla(40 25% 28% / 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+  *  ADD MORE THEMES BELOW AS NEEDED
+  * ═══════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════
+  *  BASE STYLES
+  * ═══════════════════════════════════════════════════════════════ */
 @layer base {
   * {
     @apply border-border;
@@ -126,7 +380,17 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+  *  COMPONENT CLASSES
+  *  Reusable styled primitives built on design tokens.
+  *  Use these instead of writing raw Tailwind in components.
+  * ═══════════════════════════════════════════════════════════════ */
 @layer components {
+  /**
+    * Glass Card — frosted glass panel
+    * Usage: quiz cards, info panels, modal backgrounds
+    * Example: <div className="glass-card p-6">...</div>
+    */
   .glass-card {
     @apply bg-card/80 backdrop-blur-md rounded-xl;
     border: 1px solid hsla(270, 30%, 25%, 0.4);
@@ -134,66 +398,88 @@
     background-image: var(--gradient-card);
   }
 
+  /**
+    * Glass Card with hover effect
+    * Usage: clickable cards, interactive panels
+    * Example: <div className="glass-card-hover p-6">...</div>
+    */
   .glass-card-hover {
     @apply glass-card transition-all duration-500;
   }
-
   .glass-card-hover:hover {
     border-color: hsla(270, 66%, 45%, 0.5);
     box-shadow: var(--shadow-card-hover);
   }
 
+  /**
+    * Glow effects — magical halo shadows
+    * Usage: lifeline buttons, active states, highlights
+    */
   .glow-gold {
     box-shadow: var(--shadow-glow-gold);
   }
-
   .glow-gold-strong {
     box-shadow: var(--shadow-glow-gold-strong);
   }
-
   .glow-purple {
     box-shadow: var(--shadow-glow-purple);
   }
-
   .glow-purple-strong {
     box-shadow: var(--shadow-glow-purple-strong);
   }
 
+  /**
+    * Gradient text — gold shimmer for headings & scores
+    * Usage: section titles, score display, streak text
+    * Example: <span className="text-gradient-gold">+10 ⚡</span>
+    */
   .text-gradient-gold {
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-gold);
   }
-
   .text-gradient-purple {
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-purple);
   }
 
+  /**
+    * Primary gold button — main CTA
+    * Usage: "Start Quiz", "Continue", primary actions
+    * Example: <button className="btn-primary-gold">Start</button>
+    */
   .btn-primary-gold {
     @apply px-8 py-3 rounded-lg font-semibold font-body transition-all duration-300;
     background-image: var(--gradient-gold);
     color: hsl(var(--accent-foreground));
     box-shadow: var(--shadow-glow-gold);
   }
-
   .btn-primary-gold:hover {
     filter: brightness(1.1);
     box-shadow: var(--shadow-glow-gold-strong);
     transform: translateY(-1px);
   }
 
+  /**
+    * Secondary outline button — less prominent actions
+    * Usage: "View Rules", "Back", secondary actions
+    * Example: <button className="btn-secondary-outline">Rules</button>
+    */
   .btn-secondary-outline {
     @apply px-8 py-3 rounded-lg border font-semibold font-body transition-all duration-300;
     border-color: hsla(270, 30%, 30%, 0.6);
     color: hsl(var(--foreground));
   }
-
   .btn-secondary-outline:hover {
     border-color: hsl(var(--accent));
     color: hsl(var(--accent));
     box-shadow: 0 0 15px hsla(43, 72%, 52%, 0.15);
   }
 
+  /**
+    * Section divider — subtle gradient line
+    * Usage: between page sections
+    * Example: <div className="section-divider" />
+    */
   .section-divider {
     @apply w-full h-px;
     background: linear-gradient(
@@ -206,7 +492,15 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+  *  UTILITY CLASSES
+  * ═══════════════════════════════════════════════════════════════ */
 @layer utilities {
+  /**
+    * Hover lift — subtle upward shift with purple glow
+    * Usage: interactive cards, buttons that need depth
+    * Example: <div className="hover-lift">...</div>
+    */
   .hover-lift {
     @apply transition-all duration-300 ease-out;
   }
