@@ -6,10 +6,9 @@ import type {
   QuizEventHandler,
   QuizConfig,
 } from "./engineTypes";
-import type { LifelineId } from "@/components/quizlet/lifelines/lifelineTypes";
-import { lifelineRegistry } from "@/components/quizlet/lifelines/lifelineRegistry";
+import type { LifelineId } from "@/components/quiz/lifelines/lifelineTypes";
+import { lifelineRegistry } from "@/components/quiz/lifelines/lifelineRegistry";
 import { QuizEventBus } from "./engineEvents";
-import { quizletQuestions } from "@/data/quizletQuestions";
 
 const shuffle = <T>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
 
@@ -40,7 +39,7 @@ export function createInitialState(
   const secondsPerQuestion = clampTimerSeconds(
     timerCfg.secondsPerQuestion ?? 40,
   );
-  const sourceQuestions = config.questions ?? quizletQuestions;
+  const sourceQuestions = config?.questions ?? [];
 
   return {
     status: "instructions",

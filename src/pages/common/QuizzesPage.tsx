@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import MagicalParticles from "@/components/quizlet/MagicalParticles";
+import MagicalParticles from "@/components/quiz/MagicalParticles";
 import { quizzes } from "@/data/quizzes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ const QuizzesPage = () => {
       <main className="relative flex-1 pt-28 pb-24 px-4">
         <MagicalParticles />
 
-        <div className="relative z-10 container mx-auto max-w-5xl">
+        <div className="relative z-10 mx-auto max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -79,7 +79,7 @@ const QuizzesPage = () => {
 
                   {/* This is just listing for now; wire to a play route when ready. */}
                   <Button asChild className="mt-auto">
-                    <Link to={`/quizlet/${quiz?.id}`}>Play</Link>
+                    <Link to={`/quiz/${quiz?.id}`}>Play</Link>
                   </Button>
                 </motion.div>
               );

@@ -1,7 +1,7 @@
 import type { QuizPlugin, PluginAPI } from "../engineTypes";
-import type { LifelineId } from "@/components/quizlet/lifelines/lifelineTypes";
-import { lifelineRegistry } from "@/components/quizlet/lifelines/lifelineRegistry";
-import type { QuizletQuestion } from "@/data/quizletQuestions";
+import type { LifelineId } from "@/components/quiz/lifelines/lifelineTypes";
+import { lifelineRegistry } from "@/components/quiz/lifelines/lifelineRegistry";
+import type { QuizOption, QuizQuestion } from "@/types/quiz";
 
 /**
  * Handles all lifeline activation logic.
@@ -61,11 +61,7 @@ export const lifelinePlugin: QuizPlugin = {
   },
 };
 
-function applyEffect(
-  api: PluginAPI,
-  id: LifelineId,
-  question: QuizletQuestion,
-) {
+function applyEffect(api: PluginAPI, id: LifelineId, question: QuizQuestion) {
   switch (id) {
     case "maraudersMap": {
       api.setState((s) => ({ ...s, mapHighlight: question?.correctAnswer }));
@@ -90,12 +86,16 @@ function applyEffect(
     case "legilimency": {
       const correct = question?.correctAnswer;
       // const names = ["Dumbledore", "McGonagall", "Snape", "Hagrid"];
-      const names = question?.options?.map((option: string) => option);
+      const names = question?.options?.map(
+        (option: QuizOption) => option?.text,
+      );
       // Simulate an "audience poll": the correct answer is favored with a higher percentage (65–84%), while other options get smaller random shares (10–44%).
-      const percents = question?.options?.map((_: string, i: number) => {
-        if (i === correct) return 65 + Math.floor(Math.random() * 25);
-        return 10 + Math.floor(Math.random() * 35);
-      });
+      const percents = question?.options?.map(
+        (option: QuizOption, i: number) => {
+          if (i === correct) return 65 + Math.floor(Math.random() * 25);
+          return 10 + Math.floor(Math.random() * 35);
+        },
+      );
       const total = percents?.reduce((a: number, b: number) => a + b, 0);
       const pollResults = percents?.map((p: number, i: number) => ({
         name: names?.[i] || `Wizard ${i + 1}`,

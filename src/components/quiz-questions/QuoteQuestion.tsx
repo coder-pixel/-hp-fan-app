@@ -2,7 +2,7 @@ import type { QuoteQuestion as QuoteQuestionType } from "@/types/quiz";
 import type { QuizQuestionRendererProps } from "./types";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import QuestionMedia from "@/components/quizlet/QuestionMedia";
+import QuestionMedia from "@/components/quiz/QuestionMedia";
 
 interface Props extends QuizQuestionRendererProps {
   question: QuoteQuestionType;

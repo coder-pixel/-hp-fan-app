@@ -6,7 +6,7 @@ import brandLogo from "@/assets/potterwiki-logo.png";
 
 const navLinks = [
   // { label: "Home", href: "/" },
-  // { label: "Quizlet", href: "/quizlet" },
+  // { label: "Quiz", href: "/quiz" },
   // { label: "This or That", href: "/this-or-that" },
   { label: "Quizzes", href: "/quizzes" },
   // { label: "Polls", href: "/#polls" },

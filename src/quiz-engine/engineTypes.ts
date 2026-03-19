@@ -1,9 +1,9 @@
-import type { QuizletQuestion } from "@/data/quizletQuestions";
+import type { QuizQuestion } from "@/types/quiz";
 import type {
   LifelineId,
   LifelineState,
   LifelineEffect,
-} from "@/components/quizlet/lifelines/lifelineTypes";
+} from "@/components/quiz/lifelines/lifelineTypes";
 
 export type QuizStatus = "instructions" | "playing" | "finished";
 
@@ -17,8 +17,8 @@ export interface QuizConfig {
   id: string;
   title: string;
   timer?: QuizTimerConfig;
-  /** Optional question set; defaults to the built-in quizletQuestions. */
-  questions?: QuizletQuestion[];
+  /** Optional question set; defaults to an empty array. */
+  questions?: QuizQuestion[];
 }
 
 export interface TimerState {
@@ -32,7 +32,7 @@ export interface TimerState {
 export interface QuizState {
   status: QuizStatus;
   config: QuizConfig;
-  questions: QuizletQuestion[];
+  questions: QuizQuestion[];
   questionIndex: number;
   score: number;
   streak: number;
@@ -94,11 +94,11 @@ export type QuizEventName =
 
 export interface QuizEventPayloads {
   onQuizStart: { totalQuestions: number };
-  onQuestionStart: { index: number; question: QuizletQuestion };
+  onQuestionStart: { index: number; question: QuizQuestion };
   onAnswerSelected: {
     index: number;
     correct: boolean;
-    question: QuizletQuestion;
+    question: QuizQuestion;
   };
   onQuestionEnd: { index: number };
   onQuizFinish: { score: number; total: number };

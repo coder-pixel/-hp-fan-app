@@ -4,33 +4,33 @@ import { motion } from "framer-motion";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import MagicalParticles from "@/components/quizlet/MagicalParticles";
-import QuizInstructions from "@/components/quizlet/QuizInstructions";
-import QuizletCard from "@/components/quizlet/QuizletCard";
-import QuizletResult from "@/components/quizlet/QuizletResult";
-import LifelineBar from "@/components/quizlet/lifelines/LifelineBar";
-import LifelineEffects from "@/components/quizlet/lifelines/LifelineEffects";
-import TimerPill from "@/components/quizlet/TimerPill";
+import MagicalParticles from "@/components/quiz/MagicalParticles";
+import QuizInstructions from "@/components/quiz/QuizInstructions";
+import QuizCard from "@/components/quiz/QuizCard";
+import QuizResult from "@/components/quiz/QuizResult";
+import LifelineBar from "@/components/quiz/lifelines/LifelineBar";
+import LifelineEffects from "@/components/quiz/lifelines/LifelineEffects";
+import TimerPill from "@/components/quiz/TimerPill";
 import { quizzes } from "@/data/quizzes";
-import type { Quiz } from "@/types/quiz";
-import type { QuizletQuestion } from "@/data/quizletQuestions";
+import type { Quiz, QuizQuestion } from "@/types/quiz";
 import { QuizProvider, useQuiz } from "@/quiz-engine";
 import { Button } from "@/components/ui/button";
 
-function toQuizletQuestions(quiz: Quiz): QuizletQuestion[] {
-  // Engine + lifelines expect 4-option multiple-choice questions (QuizletQuestion).
+function toQuizQuestions(quiz: Quiz): QuizQuestion[] {
+  // Engine + lifelines expect 4-option multiple-choice questions (QuizQuestion).
   // Current quizzes in /data/quizzes are multiple-choice, with correctAnswer referencing option.id (1..4).
-  return quiz.questions
+  return quiz?.questions
     ?.filter((q) => q?.type === "multiple-choice")
     ?.map((q, idx) => {
       const correctIndex = q?.options?.findIndex((o) => o?.id === q?.correctAnswer);
       return {
-        id: idx + 1,
+        id: q?.id || (idx + 1)?.toString(), // Use question id if available, otherwise use index
         question: q?.question,
-        options: q?.options?.map((o) => o?.text),
+        options: q?.options?.map((o) => ({ id: o?.id, text: o?.text })),
         correctAnswer: correctIndex >= 0 ? correctIndex : 0,
         image: q?.image,
         hint: q?.hint,
+        type: "multiple-choice",
       };
     });
 }
@@ -56,7 +56,14 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
 
   if (status === "instructions") {
     return (
-      <div className="relative z-10 mx-auto max-w-2xl">
+      <div className="relative z-10 mx-auto max-w-3xl flex flex-col items-center justify-center text-center">
+        <div className="flex flex-col items-center justify-center mb-8">
+          <span className="block text-xs font-body font-medium tracking-widest uppercase text-accent/70 mb-3">
+            {quiz?.category}
+          </span>
+          <h1 className="font-display text-3xl sm:text-4xl font-bold mb-2">{config?.title}</h1>
+        </div>
+
         <QuizInstructions totalQuestions={questions?.length} onStart={actions?.startQuiz} />
       </div>
     );
@@ -64,7 +71,7 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
 
   return (
     <div className="relative z-10 mx-auto max-w-2xl">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
+      {/* <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
         <span className="block text-xs font-body font-medium tracking-widest uppercase text-accent/70 mb-3">
           {quiz?.category}
         </span>
@@ -72,10 +79,10 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
         <p className="text-muted-foreground font-body text-sm sm:text-base">
           Score: <span className="text-foreground font-semibold">{score}</span>
         </p>
-      </motion.div>
+      </motion.div> */}
 
       {status === "finished" ? (
-        <QuizletResult score={score} total={questions?.length} onRestart={actions?.restartQuiz} />
+        <QuizResult score={score} total={questions?.length} onRestart={actions?.restartQuiz} />
       ) : (
         <>
           <LifelineEffects effect={activeEffect} onDismiss={actions?.dismissEffect} />
@@ -95,7 +102,7 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
             </motion.div>
           )}
 
-          <QuizletCard
+          <QuizCard
             question={currentQuestion}
             currentIndex={questionIndex}
             total={questions?.length}
@@ -137,15 +144,15 @@ const QuizPlayPage = () => {
           </div>
         ) : (
           <QuizProvider
-            key={quiz.id}
+            key={quiz?.id}
             config={{
-              id: quiz.id,
-              title: quiz.title,
+              id: quiz?.id,
+              title: quiz?.title,
               timer: {
-                enabled: !!quiz.config?.timer?.enabled,
-                secondsPerQuestion: quiz.config?.timer?.secondsPerQuestion ?? 40,
+                enabled: !!quiz?.config?.timer?.enabled,
+                secondsPerQuestion: quiz?.config?.timer?.secondsPerQuestion ?? 40,
               },
-              questions: toQuizletQuestions(quiz),
+              questions: toQuizQuestions(quiz as Quiz),
             }}
           >
             <QuizPlayInner quiz={quiz} />

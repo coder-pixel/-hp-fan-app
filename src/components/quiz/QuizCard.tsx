@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { QuizletQuestion } from "@/data/quizletQuestions";
+import type { QuizQuestion } from "@/types/quiz";
 import QuestionMedia from "./QuestionMedia";
 import FloatingScore from "./FloatingScore";
 
-interface QuizletCardProps {
-  question: QuizletQuestion;
+interface QuizCardProps {
+  question: QuizQuestion;
   currentIndex: number;
   total: number;
   streak: number;
@@ -16,7 +16,7 @@ interface QuizletCardProps {
   hiddenOptions?: number[];
 }
 
-const QuizletCard = ({
+const QuizCard = ({
   question,
   currentIndex,
   total,
@@ -26,7 +26,7 @@ const QuizletCard = ({
   mapHighlight,
   felixActive,
   hiddenOptions = [],
-}: QuizletCardProps) => {
+}: QuizCardProps) => {
   const progress = ((currentIndex + 1) / total) * 100;
   const [scoreKey, setScoreKey] = useState(0);
   const [showScore, setShowScore] = useState(false);
@@ -51,7 +51,7 @@ const QuizletCard = ({
     if (felixActive && index === selectedAnswer) {
       return "border-green-500/60 bg-green-900/20 glow-gold";
     }
-    if (index === question?.correctAnswer) {
+    if (question?.type === "multiple-choice" && index === question?.correctAnswer) {
       return "border-green-500/60 bg-green-900/20 glow-gold";
     }
     if (index === selectedAnswer && index !== question?.correctAnswer) {
@@ -124,7 +124,7 @@ const QuizletCard = ({
                       className="relative overflow-hidden rounded-lg border border-secondary/30 px-5 py-3.5 text-left text-sm font-medium font-body pointer-events-none"
                       style={{ boxShadow: "0 0 20px hsla(270, 66%, 45%, 0.4)" }}
                     >
-                      <span className="relative z-10 text-muted-foreground/40">{option}</span>
+                      <span className="relative z-10 text-left text-muted-foreground/40">{option?.text}</span>
                     </motion.div>
                   );
                 }
@@ -136,7 +136,7 @@ const QuizletCard = ({
                     disabled={selectedAnswer !== null}
                     className={`relative overflow-hidden rounded-lg border px-5 py-3.5 text-left text-sm font-medium font-body transition-all duration-300 ${getOptionClass(index)}`}
                   >
-                    <span className="relative z-10">{option}</span>
+                    <span className="relative z-10 text-left">{option?.text}</span>
                   </motion.button>
                 );
               })}
@@ -148,4 +148,4 @@ const QuizletCard = ({
   );
 };
 
-export default QuizletCard;
+export default QuizCard;
