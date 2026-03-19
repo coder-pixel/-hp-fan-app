@@ -33,7 +33,7 @@ const QuizletCard = ({
 
   const handleSelect = (index: number) => {
     onSelect(index);
-    const isCorrect = felixActive || index === question.correctAnswer;
+    const isCorrect = felixActive || index === question?.correctAnswer;
     if (isCorrect) {
       setScoreKey((k) => k + 1);
       setShowScore(true);
@@ -44,18 +44,17 @@ const QuizletCard = ({
   const getOptionClass = (index: number) => {
     if (selectedAnswer === null) {
       const isHighlighted = mapHighlight === index;
-      return `border-border/50 hover:border-secondary/50 hover:bg-secondary/5 cursor-pointer ${
-        isHighlighted ? "ring-1 ring-accent/50 bg-accent/5" : ""
-      }`;
+      return `border-border/50 hover:border-secondary/50 hover:bg-secondary/5 cursor-pointer ${isHighlighted ? "ring-1 ring-accent/50 bg-accent/5" : ""
+        }`;
     }
     // When felix is active, treat selected answer as correct
     if (felixActive && index === selectedAnswer) {
       return "border-green-500/60 bg-green-900/20 glow-gold";
     }
-    if (index === question.correctAnswer) {
+    if (index === question?.correctAnswer) {
       return "border-green-500/60 bg-green-900/20 glow-gold";
     }
-    if (index === selectedAnswer && index !== question.correctAnswer) {
+    if (index === selectedAnswer && index !== question?.correctAnswer) {
       return "border-destructive/60 bg-red-900/20";
     }
     return "border-border/30 opacity-40 cursor-default";
@@ -66,7 +65,7 @@ const QuizletCard = ({
       <FloatingScore show={showScore} triggerKey={scoreKey} />
       <AnimatePresence mode="wait">
         <motion.div
-          key={question.id}
+          key={question?.id}
           initial={{ opacity: 0, x: 60 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -60 }}
@@ -78,6 +77,8 @@ const QuizletCard = ({
           <div className="flex items-center justify-between mb-5">
             <span className="text-[11px] text-muted-foreground font-body tracking-wide">
               Question {currentIndex + 1} / {total}
+
+              asdf
             </span>
             {streak > 1 && (
               <motion.span
@@ -102,18 +103,18 @@ const QuizletCard = ({
           </div>
 
           {/* Optional image */}
-          <QuestionMedia image={question.image} />
+          <QuestionMedia image={question?.image} />
 
           {/* Question */}
           <h3 className="font-display text-lg sm:text-xl font-semibold mb-8 text-center leading-snug">
-            {question.question}
+            {question?.question}
           </h3>
 
           {/* Options */}
           <div className="flex flex-col gap-3">
             <AnimatePresence>
-              {question.options.map((option, index) => {
-                const isHidden = hiddenOptions.includes(index);
+              {question?.options?.map((option, index) => {
+                const isHidden = hiddenOptions?.includes(index);
                 if (isHidden) {
                   return (
                     <motion.div
