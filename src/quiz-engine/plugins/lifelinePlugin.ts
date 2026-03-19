@@ -31,10 +31,12 @@ export const lifelinePlugin: QuizPlugin = {
       applyEffect(api, id, question);
     });
 
-    // Clear felix after answer
+    // Clear felix after a normal (non-retry) answer
     api.on("onAnswerSelected", () => {
       const s = api.getState();
-      if (s.felixActive) {
+      // When felixRetryPending is true the wrong-answer was the retry trigger;
+      // retryQuestion() will clear felixActive itself — don't clear it here.
+      if (s.felixActive && !s.felixRetryPending) {
         api.setState((prev) => ({ ...prev, felixActive: false }));
       }
     });
@@ -55,6 +57,8 @@ export const lifelinePlugin: QuizPlugin = {
         lifelineStates: fresh,
         activeEffect: null,
         felixActive: false,
+        felixRetryPending: false,
+        felixUsed: false,
         mapHighlight: null,
       }));
     });
@@ -80,7 +84,12 @@ function applyEffect(api: PluginAPI, id: LifelineId, question: QuizQuestion) {
       break;
     }
     case "felixFelicis": {
-      api.setState((s) => ({ ...s, felixActive: true }));
+      api.setState((s) => ({
+        ...s,
+        felixActive: true,
+        felixRetryPending: false,
+        felixUsed: false,
+      }));
       break;
     }
     case "legilimency": {

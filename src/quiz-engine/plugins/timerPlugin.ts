@@ -203,6 +203,75 @@ export const timerPlugin: QuizPlugin = (() => {
         if (id === "freezeTime") freeze();
       });
 
+      // After a felix retry the question resets; resume the timer from remaining time.
+      api.on("onFelixRetry", () => {
+        if (!isTimerEnabled(api)) return;
+        const s = api.getState();
+        if (s.status !== "playing") return;
+
+        clearTicking();
+        clearFreezeTimeout();
+
+        const secondsPerQuestion = getSecondsPerQuestion(api);
+        const remainingSeconds = Math.max(1, s.timer.remaining);
+
+        // Rewind the logical start so the remaining time is preserved.
+        questionStartMs = Date.now() - (secondsPerQuestion - remainingSeconds) * 1000;
+        frozenAccumulatedMs = 0;
+        frozenSinceMs = null;
+        lastSecondEmitted = null;
+
+        api.setState((prev) => ({
+          ...prev,
+          timer: { ...prev.timer, isRunning: true, isFrozen: false, didTimeout: false },
+        }));
+
+        intervalId = window.setInterval(() => {
+          const state = api.getState();
+          if (state.status !== "playing" || state.selectedAnswer !== null) {
+            clearTicking();
+            api.setState((prev2) => ({ ...prev2, timer: { ...prev2.timer, isRunning: false } }));
+            return;
+          }
+          if (state.timer.isFrozen) return;
+
+          const now = Date.now();
+          const elapsedMs = now - questionStartMs - frozenAccumulatedMs;
+          const remaining = Math.max(0, secondsPerQuestion - Math.floor(elapsedMs / 1000));
+
+          if (remaining !== lastSecondEmitted) {
+            lastSecondEmitted = remaining;
+            const sounds = api.getState().config.sounds;
+            const soundsEnabled = sounds?.enabled !== false;
+            if (remaining > 0 && soundsEnabled) {
+              if (remaining <= 5) {
+                if (sounds?.timerPulseLow !== false) playTimerPulse();
+              } else {
+                if (sounds?.timerTickSubtle !== false) playTimerTickSubtle();
+              }
+            }
+            api.setState((prev2) => ({
+              ...prev2,
+              timer: { ...prev2.timer, remaining, isRunning: true },
+            }));
+          }
+
+          if (remaining <= 0) {
+            clearTicking();
+            clearFreezeTimeout();
+            const sounds = api.getState().config.sounds;
+            if (sounds?.enabled !== false && sounds?.timeout !== false) playTimeout();
+            setDidTimeout();
+            api.setState((prev2) => ({
+              ...prev2,
+              timer: { ...prev2.timer, remaining: 0, isRunning: false, isFrozen: false },
+            }));
+            api.actions.answerQuestion(TIMEOUT_SENTINEL_ANSWER_INDEX);
+            window.setTimeout(() => api.actions.advanceQuestion(), TIMEOUT_ADVANCE_DELAY_MS);
+          }
+        }, 200);
+      });
+
       // Initialize timer state so UI can safely read it even before start.
       resetTimerState(getSecondsPerQuestion(api));
 

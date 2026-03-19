@@ -25,6 +25,10 @@ interface QuizCardProps {
   onSelect: (index: number) => void;
   mapHighlight?: number | null;
   felixActive?: boolean;
+  /** True during the 800ms wrong-answer → reset window. */
+  felixRetryPending?: boolean;
+  /** True after retry was consumed — used for subtle "lucky glow" on remaining options. */
+  felixUsed?: boolean;
   hiddenOptions?: number[];
   /** Timer shown inside card when provided */
   timer?: TimerState | null;
@@ -51,6 +55,8 @@ const QuizCard = ({
   onSelect,
   mapHighlight,
   felixActive,
+  felixRetryPending = false,
+  felixUsed = false,
   hiddenOptions = [],
   timer,
   sounds,
@@ -62,7 +68,7 @@ const QuizCard = ({
 
   const handleSelect = (index: number) => {
     onSelect(index);
-    const isCorrect = felixActive || index === question?.correctAnswer;
+    const isCorrect = index === question?.correctAnswer;
     const soundsEnabled = sounds?.enabled !== false;
     if (isCorrect) {
       if (soundsEnabled && sounds?.correct !== false) playCorrect();
@@ -74,15 +80,30 @@ const QuizCard = ({
     }
   };
 
-  const getOptionState = (index: number): "idle" | "highlighted" | "correct" | "wrong" | "disabled" => {
+  const getOptionState = (index: number): "idle" | "highlighted" | "correct" | "wrong" | "disabled" | "lucky-idle" => {
     if (selectedAnswer === null) {
-      return mapHighlight === index ? "highlighted" : "idle";
+      if (mapHighlight === index) return "highlighted";
+      // After a felix retry is consumed, remaining idle options get a subtle lucky glow.
+      if (felixUsed) return "lucky-idle";
+      return "idle";
     }
-    if (felixActive && index === selectedAnswer) return "correct";
+    // Felix retry window:
+    // - user has already answered incorrectly
+    // - show only the red "wrong" state for the chosen option
+    // - do NOT reveal the correct answer yet
+    if (felixActive && felixRetryPending) {
+      if (index === selectedAnswer && index !== question?.correctAnswer) return "wrong";
+      return "disabled";
+    }
+
     if (question?.type === "multiple-choice" && index === question?.correctAnswer) return "correct";
     if (index === selectedAnswer && index !== question?.correctAnswer) return "wrong";
     return "disabled";
   };
+
+  // During retry, all buttons are locked (selectedAnswer !== null handles this).
+  // We also block interaction while the retry window is open.
+  const isInputLocked = selectedAnswer !== null || felixRetryPending;
 
   return (
     <div className="relative w-full max-w-xl mx-auto">
@@ -94,8 +115,13 @@ const QuizCard = ({
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -60 }}
           transition={{ duration: 0.35, ease: "easeInOut" }}
-          className={`glass-card p-7 sm:p-9 w-full ${felixActive ? "border border-accent/30" : ""}`}
-          style={felixActive ? { boxShadow: "0 0 30px hsla(43, 72%, 52%, 0.2)" } : {}}
+          className={[
+            "glass-card p-7 sm:p-9 w-full",
+            felixActive && !felixRetryPending ? "felix-shimmer" : "",
+            felixRetryPending ? "felix-retry-flash" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
@@ -103,10 +129,14 @@ const QuizCard = ({
               <span className="text-[11px] text-muted-foreground font-body tracking-wide">
                 Question {currentIndex + 1} / {total}
               </span>
-              {felixActive && (
-                <span className="text-[10px] font-body font-semibold px-3 py-1 rounded-full border border-accent/40 bg-accent/10 text-accent">
-                  ✨ Felix Felicis Active
-                </span>
+              {/* Minimal golden indicator — no verbose text */}
+              {felixActive && !felixRetryPending && (
+                <span
+                  className="inline-block h-2 w-2 rounded-full bg-amber-400"
+                  title="Felix Felicis active"
+                  style={{ boxShadow: "0 0 6px 2px hsla(43, 92%, 52%, 0.6)" }}
+                  aria-label="Felix Felicis active"
+                />
               )}
             </div>
 
@@ -169,7 +199,7 @@ const QuizCard = ({
               {question?.options?.map((option, index) => {
                 const isHidden = hiddenOptions?.includes(index);
                 const state = getOptionState(index);
-                const isDisabled = selectedAnswer !== null;
+                const isDisabled = isInputLocked;
 
                 if (isHidden) {
                   return (
@@ -204,18 +234,21 @@ const QuizCard = ({
                         ? { x: [0, -4, 4, -4, 4, 0], transition: { duration: 0.4 } }
                         : {}
                     }
-                    className={`relative overflow-hidden rounded-lg border px-5 py-3.5 text-left text-sm font-medium font-body transition-all duration-300 ${state === "idle"
-                      ? "border-border/50 bg-muted/20 hover:border-secondary/50 hover:bg-secondary/10 cursor-pointer"
-                      : state === "highlighted"
-                        ? "border-accent/40 bg-accent/10 ring-1 ring-accent/40 cursor-pointer"
-                        : isCorrect
-                          ? "border-green-500/60 bg-green-900/20 shadow-[0_0_20px_hsla(142,76%,36%,0.25)] cursor-default"
-                          : isWrong
-                            ? "border-destructive/60 bg-red-900/20 cursor-default"
-                            : "border-border/30 opacity-40 cursor-default pointer-events-none"
-                      }`}
+                    className={`relative overflow-hidden rounded-lg border px-5 py-3.5 text-left text-sm font-medium font-body transition-all duration-300 ${
+                      state === "idle"
+                        ? "border-border/50 bg-muted/20 hover:border-secondary/50 hover:bg-secondary/10 cursor-pointer"
+                        : state === "lucky-idle"
+                          ? "border-amber-500/30 bg-amber-950/10 hover:border-amber-400/50 hover:bg-amber-950/20 cursor-pointer"
+                          : state === "highlighted"
+                            ? "border-accent/40 bg-accent/10 ring-1 ring-accent/40 cursor-pointer"
+                            : isCorrect
+                              ? "border-green-500/60 bg-green-900/20 shadow-[0_0_20px_hsla(142,76%,36%,0.25)] cursor-default"
+                              : isWrong
+                                ? "border-destructive/60 bg-red-900/20 cursor-default"
+                                : "border-border/30 opacity-40 cursor-default pointer-events-none"
+                    }`}
                     style={
-                      state === "idle" || state === "highlighted"
+                      state === "idle" || state === "highlighted" || state === "lucky-idle"
                         ? undefined
                         : isCorrect
                           ? { boxShadow: "0 0 20px hsla(142, 76%, 36%, 0.3)" }

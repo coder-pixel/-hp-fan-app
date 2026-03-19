@@ -4,7 +4,8 @@ export const lifelineRegistry: Record<LifelineId, LifelineDefinition> = {
   maraudersMap: {
     id: "maraudersMap",
     displayName: "Marauder's Map",
-    description: "Reveals suspicious options by highlighting the most likely answer — but it's not guaranteed.",
+    description:
+      "Reveals suspicious options by highlighting the most likely answer — but it's not guaranteed.",
     icon: "Map",
     maxUsagePerGame: 1,
   },
@@ -18,14 +19,16 @@ export const lifelineRegistry: Record<LifelineId, LifelineDefinition> = {
   felixFelicis: {
     id: "felixFelicis",
     displayName: "Felix Felicis",
-    description: "Drink the luck potion — your next answer is guaranteed correct.",
+    description:
+      "Drink the luck potion — fortune favors you; if you slip, you get one more try on this question.",
     icon: "FlaskConical",
     maxUsagePerGame: 1,
   },
   legilimency: {
     id: "legilimency",
     displayName: "Legilimency",
-    description: "Read the minds of the wizarding world to see how others voted.",
+    description:
+      "Read the minds of the wizarding world to see how others voted.",
     icon: "Eye",
     maxUsagePerGame: 1,
   },

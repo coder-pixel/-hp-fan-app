@@ -52,6 +52,10 @@ export interface QuizState {
   lifelineStates: Record<LifelineId, LifelineState>;
   activeEffect: LifelineEffect | null;
   felixActive: boolean;
+  /** True during the 800ms "wrong answer shown → retry reset" window. */
+  felixRetryPending: boolean;
+  /** True after the retry was consumed — used to trigger "That was close…" microcopy. */
+  felixUsed: boolean;
   mapHighlight: number | null;
   hiddenOptions: number[];
 }
@@ -60,6 +64,8 @@ export interface QuizActions {
   startQuiz: () => void;
   answerQuestion: (optionIndex: number) => void;
   advanceQuestion: () => void;
+  /** Called ~800ms after a felix-retry wrong answer to reset the question. */
+  retryQuestion: () => void;
   useLifeline: (id: LifelineId) => void;
   dismissEffect: () => void;
   restartQuiz: () => void;
@@ -101,6 +107,7 @@ export type QuizEventName =
   | "onQuestionEnd"
   | "onQuizFinish"
   | "onLifelineUsed"
+  | "onFelixRetry"
   | "onRestart";
 
 export interface QuizEventPayloads {
@@ -114,6 +121,8 @@ export interface QuizEventPayloads {
   onQuestionEnd: { index: number };
   onQuizFinish: { score: number; total: number };
   onLifelineUsed: { id: LifelineId };
+  /** Fired after felixRetryPending window ends and question is reset for a retry. */
+  onFelixRetry: { questionIndex: number };
   onRestart: Record<string, never>;
 }
 

@@ -61,6 +61,8 @@ export function createInitialState(
     lifelineStates: createInitialLifelineStates(),
     activeEffect: null,
     felixActive: false,
+    felixRetryPending: false,
+    felixUsed: false,
     mapHighlight: null,
     hiddenOptions: [],
   };
@@ -126,8 +128,24 @@ export class QuizEngine {
     if (this.state.selectedAnswer !== null) return;
 
     const question = this.state.questions[this.state.questionIndex];
-    const correct =
-      this.state.felixActive || optionIndex === question.correctAnswer;
+    const isActuallyCorrect = optionIndex === question.correctAnswer;
+
+    // Felix retry path: wrong answer while retry hasn't been consumed yet.
+    // Show the wrong highlight briefly; the context schedules retryQuestion() after the delay.
+    if (this.state.felixActive && !this.state.felixRetryPending && !isActuallyCorrect) {
+      this.setState((s) => ({
+        ...s,
+        selectedAnswer: optionIndex,
+        felixRetryPending: true,
+        activeEffect: null,
+        mapHighlight: null,
+      }));
+      this.bus.emit("onAnswerSelected", { index: optionIndex, correct: false, question });
+      return;
+    }
+
+    // Normal answer path (felix active + correct first-try, or felix not active)
+    const correct = isActuallyCorrect;
 
     this.setState((s) => ({
       ...s,
@@ -137,11 +155,21 @@ export class QuizEngine {
       mapHighlight: null,
     }));
 
-    this.bus.emit("onAnswerSelected", {
-      index: optionIndex,
-      correct,
-      question,
-    });
+    this.bus.emit("onAnswerSelected", { index: optionIndex, correct, question });
+  }
+
+  /** Resets question state after the felix-retry delay so the player can answer again. */
+  retryQuestion() {
+    const questionIndex = this.state.questionIndex;
+    this.setState((s) => ({
+      ...s,
+      selectedAnswer: null,
+      felixActive: false,
+      felixRetryPending: false,
+      felixUsed: true,
+      activeEffect: null,
+    }));
+    this.bus.emit("onFelixRetry", { questionIndex });
   }
 
   advanceQuestion() {
@@ -153,6 +181,8 @@ export class QuizEngine {
         ...s,
         questionIndex: nextIndex,
         selectedAnswer: null,
+        felixUsed: false,
+        hiddenOptions: [],
       }));
       this.bus.emit("onQuestionEnd", { index: this.state.questionIndex - 1 });
       this.bus.emit("onQuestionStart", {
@@ -171,7 +201,7 @@ export class QuizEngine {
   }
 
   useLifeline(id: LifelineId) {
-    if (this.state.selectedAnswer !== null) return;
+    if (this.state.selectedAnswer !== null || this.state.felixRetryPending) return;
     const lifeState = this.state.lifelineStates[id];
     const def = lifelineRegistry[id];
     if (lifeState.usedCount >= def.maxUsagePerGame) return;

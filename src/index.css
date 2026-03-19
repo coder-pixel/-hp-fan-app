@@ -476,6 +476,43 @@
   }
 
   /**
+    * Felix Felicis — golden shimmer pulse on the quiz card border + shadow.
+    * Applied when felixActive === true.
+    * Usage: <div className="felix-shimmer">…</div>
+    */
+  .felix-shimmer {
+    border-color: hsla(43, 92%, 52%, 0.55) !important;
+    animation: felix-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes felix-pulse {
+    0%, 100% {
+      box-shadow:
+        0 0 18px hsla(43, 92%, 52%, 0.18),
+        0 0 40px hsla(43, 92%, 52%, 0.08);
+    }
+    50% {
+      box-shadow:
+        0 0 28px hsla(43, 92%, 52%, 0.32),
+        0 0 60px hsla(43, 92%, 52%, 0.14);
+    }
+  }
+
+  /**
+    * Felix retry flash — brief warm golden burst when the retry window opens.
+    * Applied momentarily when felixRetryPending === true.
+    */
+  .felix-retry-flash {
+    animation: felix-retry 0.5s ease-out forwards;
+  }
+
+  @keyframes felix-retry {
+    0%   { box-shadow: 0 0 0 0 hsla(43, 92%, 52%, 0); }
+    30%  { box-shadow: 0 0 36px 6px hsla(43, 92%, 52%, 0.35); }
+    100% { box-shadow: 0 0 10px 0 hsla(43, 92%, 52%, 0); }
+  }
+
+  /**
     * Section divider — subtle gradient line
     * Usage: between page sections
     * Example: <div className="section-divider" />

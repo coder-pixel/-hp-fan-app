@@ -10,14 +10,17 @@ import QuizInstructions from "@/components/quiz/QuizInstructions";
 import QuizCard from "@/components/quiz/QuizCard";
 import QuizResult from "@/components/quiz/QuizResult";
 import LifelineEffects from "@/components/quiz/lifelines/LifelineEffects";
+import FelixMicrocopy from "@/components/quiz/FelixMicrocopy";
 import DumbledoreModal from "@/components/quiz/DumbledoreModal";
 import PollModal from "@/components/quiz/PollModal";
+import { useFelixFelicis } from "@/hooks/useFelixFelicis";
 import { quizzes } from "@/data/quizzes";
 import type { Quiz, QuizQuestion } from "@/types/quiz";
 import { QuizProvider, useQuiz } from "@/quiz-engine";
 import { Button } from "@/components/ui/button";
 import { setQuizSoundsEnabled } from "@/lib/quizSounds";
 import { toast } from "@/hooks/use-toast";
+
 
 function toQuizQuestions(quiz: Quiz): QuizQuestion[] {
   // Engine + lifelines expect 4-option multiple-choice questions (QuizQuestion).
@@ -52,6 +55,8 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
     lifelineStates,
     activeEffect,
     felixActive,
+    felixRetryPending,
+    felixUsed,
     mapHighlight,
     hiddenOptions,
   } = state;
@@ -63,7 +68,12 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
   const [pollModalOpen, setPollModalOpen] = useState(false);
   const legilimencyQuestionIndexRef = useRef<number | null>(null);
   const prevHiddenOptionsLenRef = useRef(0);
-  const prevFelixActiveRef = useRef(false);
+
+  // Felix Felicis microcopy — handles all three message phases.
+  const { microcopy: felixMicrocopy } = useFelixFelicis(
+    { felixActive, felixRetryPending, felixUsed, selectedAnswer, questionIndex },
+    currentQuestion ?? null,
+  );
 
   useEffect(() => {
     setQuizSoundsEnabled(soundsAllowed && audioOn);
@@ -76,16 +86,6 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
     }
     prevHiddenOptionsLenRef.current = hiddenOptionsLen;
   }, [hiddenOptions]);
-
-  useEffect(() => {
-    if (felixActive && !prevFelixActiveRef.current) {
-      toast({
-        title: "Felix Felicis Active",
-        description: "Next answer guaranteed correct!",
-      });
-    }
-    prevFelixActiveRef.current = felixActive;
-  }, [felixActive]);
 
   useEffect(() => {
     if (activeEffect?.type === "askDumbledore" && activeEffect?.hint) {
@@ -126,14 +126,14 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
 
   return (
     <div className="relative z-10 mx-auto max-w-2xl">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
-        <span className="text-xs font-body font-medium tracking-widest uppercase text-accent/70 mb-3">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-4">
+        {/* <span className="text-xs font-body font-medium tracking-widest uppercase text-accent/70 mb-3">
           {quiz?.category}
-        </span>
+        </span> */}
         <h1 className="font-display text-3xl sm:text-4xl font-bold mb-2">{config?.title}</h1>
-        <p className="text-muted-foreground font-body text-sm sm:text-base">
+        {/* <p className="text-muted-foreground font-body text-sm sm:text-base">
           Score: <span className="text-foreground font-semibold">{score}</span>
-        </p>
+        </p> */}
       </motion.div>
 
       {status === "finished" ? (
@@ -181,63 +181,74 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
             </motion.div>
           )}
 
-          <QuizCard
-            question={currentQuestion}
-            currentIndex={questionIndex}
-            total={questions?.length}
-            streak={streak}
-            selectedAnswer={selectedAnswer}
-            onSelect={actions?.answerQuestion}
-            mapHighlight={mapHighlight}
-            felixActive={felixActive}
-            hiddenOptions={hiddenOptions}
-            timer={config?.timer?.enabled ? timer : null}
-            sounds={config?.sounds}
-            lifelineDockProps={{
-              quizLifelines: quiz?.lifelineConfig,
-              lifelineStates,
-              onActivate: (id) => {
-                if (
-                  id === "askDumbledore" &&
-                  activeEffect?.type === "askDumbledore" &&
-                  !!activeEffect?.hint &&
-                  askDumbledoreQuestionIndexRef.current === questionIndex
-                ) {
-                  setAskDumbledoreModalOpen(true);
-                  return;
-                }
-                if (
-                  id === "legilimency" &&
-                  activeEffect?.type === "legilimency" &&
-                  !!activeEffect?.pollResults &&
-                  legilimencyQuestionIndexRef.current === questionIndex
-                ) {
-                  setPollModalOpen(true);
-                  return;
-                }
-                actions?.useLifeline(id);
-              },
-              disabled: selectedAnswer !== null,
-              activeId: activeEffect?.type ?? null,
-              allowUsedActivation: (id) => {
-                if (
-                  id === "askDumbledore" &&
-                  activeEffect?.type === "askDumbledore" &&
-                  !!activeEffect?.hint &&
-                  askDumbledoreQuestionIndexRef.current === questionIndex
-                ) return true;
-                if (
-                  id === "legilimency" &&
-                  activeEffect?.type === "legilimency" &&
-                  !!activeEffect?.pollResults &&
-                  legilimencyQuestionIndexRef.current === questionIndex
-                ) return true;
-                return false;
-              },
-              label: "Lifelines",
-            }}
-          />
+          <div className="relative">
+            <FelixMicrocopy message={felixMicrocopy} />
+            <QuizCard
+              question={currentQuestion}
+              currentIndex={questionIndex}
+              total={questions?.length}
+              streak={streak}
+              selectedAnswer={selectedAnswer}
+              onSelect={actions?.answerQuestion}
+              mapHighlight={mapHighlight}
+              felixActive={felixActive}
+              felixRetryPending={felixRetryPending}
+              felixUsed={felixUsed}
+              hiddenOptions={hiddenOptions}
+              timer={config?.timer?.enabled ? timer : null}
+              sounds={config?.sounds}
+              lifelineDockProps={{
+                quizLifelines: quiz?.lifelineConfig,
+                lifelineStates,
+                onActivate: (id) => {
+                  if (
+                    id === "askDumbledore" &&
+                    activeEffect?.type === "askDumbledore" &&
+                    !!activeEffect?.hint &&
+                    askDumbledoreQuestionIndexRef.current === questionIndex
+                  ) {
+                    setAskDumbledoreModalOpen(true);
+                    return;
+                  }
+                  if (
+                    id === "legilimency" &&
+                    activeEffect?.type === "legilimency" &&
+                    !!activeEffect?.pollResults &&
+                    legilimencyQuestionIndexRef.current === questionIndex
+                  ) {
+                    setPollModalOpen(true);
+                    return;
+                  }
 
+                  if (id === "felixFelicis") {
+                    toast({
+                      title: "Felix Felicis",
+                      description: "A sip of liquid luck. If you falter, you get one more try this round.",
+                    });
+                  }
+                  actions?.useLifeline(id);
+                },
+                disabled: selectedAnswer !== null || felixRetryPending,
+                activeId: activeEffect?.type ?? null,
+                allowUsedActivation: (id) => {
+                  if (
+                    id === "askDumbledore" &&
+                    activeEffect?.type === "askDumbledore" &&
+                    !!activeEffect?.hint &&
+                    askDumbledoreQuestionIndexRef.current === questionIndex
+                  ) return true;
+                  if (
+                    id === "legilimency" &&
+                    activeEffect?.type === "legilimency" &&
+                    !!activeEffect?.pollResults &&
+                    legilimencyQuestionIndexRef.current === questionIndex
+                  ) return true;
+                  return false;
+                },
+                label: "Lifelines",
+              }}
+            />
+          </div>
 
           <PollModal
             open={
