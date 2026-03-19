@@ -1,7 +1,8 @@
 import type { PluginAPI, QuizPlugin } from "../engineTypes";
 
 const TIMEOUT_SENTINEL_ANSWER_INDEX = 9999;
-const QUESTION_ADVANCE_DELAY_MS = 1200;
+/** Delay (ms) after timeout before auto-advancing to next question; warning stays visible for this duration. */
+const TIMEOUT_ADVANCE_DELAY_MS = 1200;
 const FREEZE_DURATION_MS = 5000;
 
 function clampSeconds(seconds: number) {
@@ -66,9 +67,7 @@ export const timerPlugin: QuizPlugin = (() => {
 
       const setDidTimeout = () => {
         api.setState((s) => ({ ...s, timer: { ...s.timer, didTimeout: true } }));
-        window.setTimeout(() => {
-          api.setState((s) => ({ ...s, timer: { ...s.timer, didTimeout: false } }));
-        }, 350);
+        // didTimeout stays true until next question start (so UI can show warning until advance).
       };
 
       const start = () => {
@@ -126,9 +125,11 @@ export const timerPlugin: QuizPlugin = (() => {
               timer: { ...s.timer, remaining: 0, isRunning: false, isFrozen: false },
             }));
 
-            // Auto-answer incorrect and advance.
+            // Auto-answer incorrect, then advance after fixed delay (warning stays visible until then).
             api.actions.answerQuestion(TIMEOUT_SENTINEL_ANSWER_INDEX);
-            window.setTimeout(() => api.actions.advanceQuestion(), QUESTION_ADVANCE_DELAY_MS);
+            window.setTimeout(() => {
+              api.actions.advanceQuestion();
+            }, TIMEOUT_ADVANCE_DELAY_MS);
           }
         }, 200);
       };

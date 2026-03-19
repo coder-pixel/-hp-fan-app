@@ -87,6 +87,22 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
         <>
           <LifelineEffects effect={activeEffect} onDismiss={actions?.dismissEffect} />
 
+          {config?.timer?.enabled && timer?.didTimeout && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mb-4 rounded-lg border border-amber-500/40 bg-amber-950/30 px-4 py-3 text-center backdrop-blur-sm"
+              style={{ boxShadow: "0 0 20px hsla(38, 92%, 50%, 0.15)" }}
+            >
+              <p className="text-sm font-semibold font-body text-amber-200">
+                ⏱️ Time's up!
+              </p>
+              <p className="mt-1 text-xs font-body text-amber-200/80">
+                Moving to next question...
+              </p>
+            </motion.div>
+          )}
 
           {felixActive && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center mb-3">
