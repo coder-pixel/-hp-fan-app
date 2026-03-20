@@ -1,3 +1,5 @@
+import { EmotionalBand } from "@/quiz-results";
+
 export enum QuizDifficulty {
   EASY = "easy",
   MEDIUM = "medium",
@@ -162,6 +164,7 @@ export interface Quiz {
   lifelineConfig?: QuizPluginsConfig;
   /** Sound effects (timer, correct/wrong, timeout). Omit or enabled: true to play sounds. */
   sounds?: QuizSoundsConfig;
+  emotionalBands?: EmotionalBand[]; // for quiz results page
   createdAt: string;
   updatedAt: string;
 }

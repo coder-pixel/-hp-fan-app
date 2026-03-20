@@ -1,4 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ResultsPage,
+  ReviewPage,
+  mapHistoryToResultAnswers,
+} from "@/quiz-results";
+import { QUIZ_TIMEOUT_ANSWER_INDEX } from "@/quiz-engine/constants";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
@@ -8,7 +14,7 @@ import Footer from "@/components/layout/Footer";
 import MagicalParticles from "@/components/quiz/MagicalParticles";
 import QuizInstructions from "@/components/quiz/QuizInstructions";
 import QuizCard from "@/components/quiz/QuizCard";
-import QuizResult from "@/components/quiz/QuizResult";
+import NextQuizCard from "@/components/quiz/NextQuizCard";
 import LifelineEffects from "@/components/quiz/lifelines/LifelineEffects";
 import FelixMicrocopy from "@/components/quiz/FelixMicrocopy";
 import DumbledoreModal from "@/components/quiz/DumbledoreModal";
@@ -36,6 +42,7 @@ function toQuizQuestions(quiz: Quiz): QuizQuestion[] {
         correctAnswer: correctIndex >= 0 ? correctIndex : 0,
         image: q?.image,
         hint: q?.hint,
+        explanation: q?.explanation,
         type: "multiple-choice",
       };
     });
@@ -50,6 +57,7 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
     questions,
     questionIndex,
     score,
+    answerHistory,
     streak,
     selectedAnswer,
     lifelineStates,
@@ -66,6 +74,7 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
   const [askDumbledoreModalOpen, setAskDumbledoreModalOpen] = useState(false);
   const askDumbledoreQuestionIndexRef = useRef<number | null>(null);
   const [pollModalOpen, setPollModalOpen] = useState(false);
+  const [finishedPanel, setFinishedPanel] = useState<"results" | "review">("results");
   const legilimencyQuestionIndexRef = useRef<number | null>(null);
   const prevHiddenOptionsLenRef = useRef(0);
 
@@ -102,12 +111,27 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
   }, [activeEffect?.type, activeEffect?.pollResults, questionIndex]);
 
   useEffect(() => {
+    if (status !== "finished") setFinishedPanel("results");
+  }, [status]);
+
+  useEffect(() => {
     // Moving to another question: reset all per-question modal states.
     setAskDumbledoreModalOpen(false);
     askDumbledoreQuestionIndexRef.current = null;
     setPollModalOpen(false);
     legilimencyQuestionIndexRef.current = null;
   }, [questionIndex]);
+
+  const resultPayload = useMemo(() => {
+    const total = questions?.length ?? 0;
+    const answers =
+      status === "finished"
+        ? mapHistoryToResultAnswers(questions ?? [], answerHistory ?? [], {
+          timeoutAnswerIndex: QUIZ_TIMEOUT_ANSWER_INDEX,
+        })
+        : [];
+    return { score, total, answers };
+  }, [status, score, questions, answerHistory]);
 
   if (status === "instructions") {
     return (
@@ -137,7 +161,29 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
       </motion.div>
 
       {status === "finished" ? (
-        <QuizResult quizTitle={config?.title} quizLink={window.location.href} score={score} total={questions?.length} onRestart={actions?.restartQuiz} />
+        <>
+          {finishedPanel === "review" ? (
+            <ReviewPage data={resultPayload} onBack={() => setFinishedPanel("results")} />
+          ) : (
+            <>
+              <ResultsPage
+                data={resultPayload}
+                config={{
+                  quizTitle: config?.title,
+                  shareUrl: typeof window !== "undefined" ? window.location.href : undefined,
+                  shareCard: {
+                    headline: "Certified Potterhead 🪄",
+                    brandInitials: "PW",
+                  },
+                  emotionalBands: quiz?.emotionalBands,
+                }}
+                onPlayAgain={actions?.restartQuiz}
+                onReviewAnswers={() => setFinishedPanel("review")}
+              />
+              <NextQuizCard />
+            </>
+          )}
+        </>
       ) : (
         <>
           {soundsAllowed && (

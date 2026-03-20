@@ -9,6 +9,8 @@ export type {
   QuizConfig,
   QuizTimerConfig,
   TimerState,
+  QuizAnswerHistoryEntry,
 } from "./engineTypes";
 
 export { QuizEngine, createInitialState } from "./QuizEngine";
+export { QUIZ_TIMEOUT_ANSWER_INDEX } from "./constants";

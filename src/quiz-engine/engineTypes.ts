@@ -40,6 +40,14 @@ export interface TimerState {
   didTimeout: boolean;
 }
 
+/** One row per question, in play order (shuffled), recorded when leaving the question. */
+export interface QuizAnswerHistoryEntry {
+  questionIndex: number;
+  userOptionIndex: number | null;
+  correct: boolean;
+  explanation?: string;
+}
+
 export interface QuizState {
   status: QuizStatus;
   config: QuizConfig;
@@ -58,6 +66,8 @@ export interface QuizState {
   felixUsed: boolean;
   mapHighlight: number | null;
   hiddenOptions: number[];
+  /** Filled as the player advances; used for post-quiz review UIs. */
+  answerHistory: QuizAnswerHistoryEntry[];
 }
 
 export interface QuizActions {

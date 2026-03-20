@@ -1,7 +1,8 @@
 import type { PluginAPI, QuizPlugin } from "../engineTypes";
 import { playTimerTickSubtle, playTimerPulse, playTimeout } from "@/lib/quizSounds";
+import { QUIZ_TIMEOUT_ANSWER_INDEX } from "../constants";
 
-const TIMEOUT_SENTINEL_ANSWER_INDEX = 9999;
+const TIMEOUT_SENTINEL_ANSWER_INDEX = QUIZ_TIMEOUT_ANSWER_INDEX;
 /** Delay (ms) after timeout before auto-advancing to next question; warning stays visible for this duration. */
 const TIMEOUT_ADVANCE_DELAY_MS = 1200;
 const FREEZE_DURATION_MS = 5000;
