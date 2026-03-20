@@ -93,7 +93,58 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
           </p>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div
+          className={cn(
+            "mt-4 rounded-2xl border px-3 py-2.5",
+            theme === "light" ? "border-zinc-300/70 bg-white/70" : "border-white/20 bg-white/10",
+          )}
+        >
+          {quizUrl ? (
+            <a
+              href={quizUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-[10px] font-medium uppercase tracking-[0.18em] opacity-80 underline-offset-2 hover:underline"
+            >
+              {quizTitle ?? "Harry Potter Quiz"}
+            </a>
+          ) : (
+            <p className="text-[10px] font-medium uppercase tracking-[0.18em] opacity-75">
+              {quizTitle ?? "Harry Potter Quiz"}
+            </p>
+          )}
+          <p
+            className={cn(
+              "mt-1 text-xs leading-relaxed",
+              theme === "light" ? "text-zinc-700" : "text-white/90",
+            )}
+          >
+            {challengeLine ?? "I scored high. Can you beat me?"}
+          </p>
+        </div>
+
+
+
+        <div className="flex flex-1 flex-col justify-center">
+          <p
+            className={cn(
+              "font-display text-xl font-bold leading-snug sm:text-2xl",
+              theme === "fun" && "drop-shadow-sm",
+            )}
+          >
+            {headline}
+          </p>
+          <p
+            className={cn(
+              "mt-3 text-sm leading-relaxed opacity-90",
+              theme === "light" ? "text-zinc-700" : "text-white/90",
+            )}
+          >
+            {tagline}
+          </p>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-2  py-4">
           <div
             className={cn(
               "rounded-2xl border px-3 py-2",
@@ -112,25 +163,6 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
             <p className="text-[9px] uppercase tracking-[0.2em] opacity-70">Rank</p>
             <p className="mt-1 text-sm font-semibold">{performanceLabel ?? "Wizard"}</p>
           </div>
-        </div>
-
-        <div className="flex flex-1 flex-col justify-center py-4">
-          <p
-            className={cn(
-              "font-display text-xl font-bold leading-snug sm:text-2xl",
-              theme === "fun" && "drop-shadow-sm",
-            )}
-          >
-            {headline}
-          </p>
-          <p
-            className={cn(
-              "mt-3 text-sm leading-relaxed opacity-90",
-              theme === "light" ? "text-zinc-700" : "text-white/90",
-            )}
-          >
-            {tagline}
-          </p>
         </div>
 
         <div className="space-y-1 text-center">
@@ -185,6 +217,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
               {passLabel}
             </span>
           </div>
+
           <div
             className={cn(
               "mt-2 h-2 w-full overflow-hidden rounded-full",
@@ -214,36 +247,6 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
             )}
           >
             Pass mark: {passMark}%
-          </p>
-        </div>
-
-        <div
-          className={cn(
-            "mt-4 rounded-2xl border px-3 py-2.5",
-            theme === "light" ? "border-zinc-300/70 bg-white/70" : "border-white/20 bg-white/10",
-          )}
-        >
-          {quizUrl ? (
-            <a
-              href={quizUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-[10px] font-medium uppercase tracking-[0.18em] opacity-80 underline-offset-2 hover:underline"
-            >
-              {quizTitle ?? "Harry Potter Quiz"}
-            </a>
-          ) : (
-            <p className="text-[10px] font-medium uppercase tracking-[0.18em] opacity-75">
-              {quizTitle ?? "Harry Potter Quiz"}
-            </p>
-          )}
-          <p
-            className={cn(
-              "mt-1 text-xs leading-relaxed",
-              theme === "light" ? "text-zinc-700" : "text-white/90",
-            )}
-          >
-            {challengeLine ?? "I scored high. Can you beat me?"}
           </p>
         </div>
       </div>
