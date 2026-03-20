@@ -1,0 +1,229 @@
+# Quiz Config API Documentation
+
+This document defines the full quiz object contract used in this project, what each key means, and where it is consumed.
+
+Primary type source: `src/types/quiz.ts`
+Main runtime consumer: `src/pages/common/QuizPlayPage.tsx`
+
+------------------------------------------------------------
+1) Root Quiz Object
+------------------------------------------------------------
+
+Type: `Quiz`
+
+Required keys:
+
+- `id: string`
+  - Unique quiz identifier.
+  - Used by route `/quiz/:id` and quiz lookup from `quizzes` array.
+  - Example: `"hp-short-quiz"`
+
+- `title: string`
+  - Display title shown in quiz play and results/share contexts.
+  - Used in quiz page heading and share text/card.
+
+- `questions: QuizQuestion[]`
+  - List of all questions for this quiz.
+  - Current supported question type in this codebase: `multiple-choice`.
+
+- `difficulty: "easy" | "medium" | "hard"` (`QuizDifficulty`)
+  - Metadata used for listing and categorization.
+
+- `category: string`
+  - Category label (for example `"Harry Potter"`).
+
+- `type: "multiple-choice"`
+  - Quiz-level type (kept for backward compatibility).
+  - Question-level `type` is still used for rendering and review metadata.
+
+- `createdAt: string`
+  - ISO timestamp.
+
+- `updatedAt: string`
+  - ISO timestamp.
+
+Optional keys:
+
+- `lifelineConfig?: QuizPluginsConfig`
+  - Enables/configures timer and lifelines.
+
+- `sounds?: QuizSoundsConfig`
+  - Controls quiz sound effects.
+
+- `emotionalBands?: EmotionalBand[]`
+  - Custom result-page emotional messages based on score percent.
+  - Passed into results module from `QuizPlayPage`.
+
+- `passMark?: number`
+  - Minimum score percentage considered "Passed" on share-card progress block.
+  - If omitted, defaults to `60`.
+  - Passed from quiz config -> results config -> share card.
+
+------------------------------------------------------------
+2) Question Object (Current: Multiple Choice)
+------------------------------------------------------------
+
+Type: `MultipleChoiceQuestion` (extends `BaseQuestion`)
+
+Required keys:
+
+- `id: string`
+  - Unique question id.
+
+- `question: string`
+  - Question text shown in play and review.
+
+- `hint: string`
+  - Hint text used by lifeline/help systems.
+
+- `type: "multiple-choice"`
+  - Renderer discriminator.
+
+- `options: QuizOption[]`
+  - Exactly what is shown as answer options.
+
+- `correctAnswer: number`
+  - IMPORTANT: this is `option.id`, not option array index, in quiz data files.
+  - In `QuizPlayPage` transform, this is mapped to index for engine use.
+
+Optional keys:
+
+- `image?: string`
+  - Question media URL.
+
+- `explanation?: string`
+  - Post-question educational context.
+  - Used in review page answer cards.
+
+`QuizOption` shape:
+
+- `id: number` (used by `correctAnswer`)
+- `text: string`
+- `image?: string`
+
+------------------------------------------------------------
+3) Lifeline / Plugin Config
+------------------------------------------------------------
+
+Type: `QuizPluginsConfig`
+
+Timer:
+
+- `timer?: { enabled: boolean; secondsPerQuestion: number }`
+  - Enables per-question countdown.
+  - Seconds are clamped by engine plugin to a safe range.
+
+Lifelines (all optional):
+
+- `maraudersMap?: LifelineConfig`
+- `askDumbledore?: LifelineConfig`
+- `felixFelicis?: LifelineConfig`
+- `legilimency?: LifelineConfig`
+- `revelio?: LifelineConfig`
+- `freezeTime?: LifelineConfig`
+
+`LifelineConfig` shape:
+
+- `enabled: boolean`
+- `maxUsagePerGame: number`
+- `usageCount: number`
+
+Note:
+- `usageCount` in data is generally initialized to `0`.
+- Runtime usage is tracked by quiz engine state during play.
+
+------------------------------------------------------------
+4) Sounds Config
+------------------------------------------------------------
+
+Type: `QuizSoundsConfig`
+
+- `enabled: boolean` (master toggle)
+- `correct?: boolean`
+- `wrong?: boolean`
+- `timerTickSubtle?: boolean`
+- `timerPulseLow?: boolean`
+- `timeout?: boolean`
+
+Behavior:
+- If `enabled` is false, no quiz sounds play.
+- Optional flags default to enabled behavior unless explicitly false.
+
+------------------------------------------------------------
+5) Results-related Config Keys
+------------------------------------------------------------
+
+These are quiz-level keys consumed by results UI:
+
+- `emotionalBands?: Array<{ minPercent: number; message: string }>`
+  - Score percent -> emotional hook message.
+  - Bands are sorted descending by `minPercent`, first match is used.
+
+- `passMark?: number`
+  - Used in share-card progress card.
+  - Controls "Passed" vs "Keep practicing" state and displayed threshold line.
+  - Clamped to 0..100 in UI.
+
+------------------------------------------------------------
+6) Data Flow (Where Keys Are Used)
+------------------------------------------------------------
+
+1. Quiz object is selected by route id in:
+   - `src/pages/common/QuizPlayPage.tsx`
+
+2. `questions` are transformed for engine:
+   - Option-id based `correctAnswer` -> option index.
+   - `explanation`, `hint`, `image`, `type` are preserved for downstream use.
+
+3. Engine executes gameplay:
+   - Lifelines/timer from `lifelineConfig`
+   - Sounds from `sounds`
+
+4. On finish:
+   - `answerHistory` + transformed questions -> review answers map.
+   - `emotionalBands` and `passMark` are forwarded into results config.
+
+5. Results module:
+   - Results page, review page, and share card consume derived data and config.
+
+------------------------------------------------------------
+7) Minimal Valid Quiz Example
+------------------------------------------------------------
+
+{
+  id: "example-quiz",
+  title: "Example Quiz",
+  difficulty: "easy",
+  category: "Harry Potter",
+  type: "multiple-choice",
+  questions: [
+    {
+      id: "q1",
+      type: "multiple-choice",
+      question: "Which house is Harry in?",
+      hint: "The Sorting Hat chose it.",
+      options: [
+        { id: 1, text: "Gryffindor" },
+        { id: 2, text: "Slytherin" },
+        { id: 3, text: "Ravenclaw" },
+        { id: 4, text: "Hufflepuff" }
+      ],
+      correctAnswer: 1,
+      explanation: "Harry was sorted into Gryffindor."
+    }
+  ],
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
+}
+
+------------------------------------------------------------
+8) Authoring Checklist
+------------------------------------------------------------
+
+- Ensure every question has a unique `id`.
+- Ensure `correctAnswer` matches an existing `options[].id`.
+- Keep `type` as `"multiple-choice"` for current renderer support.
+- Add `explanation` if you want rich review cards.
+- Use `emotionalBands` for custom top-line results messaging.
+- Set `passMark` if this quiz needs a custom passing threshold.
+
