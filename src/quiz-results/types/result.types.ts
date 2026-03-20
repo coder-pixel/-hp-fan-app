@@ -36,6 +36,8 @@ export interface QuizResultsUiConfig {
   appName?: string;
   emotionalBands?: EmotionalBand[];
   performanceBands?: PerformanceBand[];
+  /** Min % to show as “passed” on the share card (defaults to 60 if omitted). */
+  passMark?: number;
   /** Optional flair under the headline (house, archetype, etc.) */
   resultTag?: string;
   shareCard?: {

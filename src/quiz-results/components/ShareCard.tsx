@@ -13,6 +13,8 @@ export interface ShareCardProps {
   quizUrl?: string;
   performanceLabel?: string;
   challengeLine?: string;
+  /** Min % to count as passed; defaults to 60. */
+  passMark?: number;
   brandInitials?: string;
   className?: string;
 }
@@ -37,13 +39,15 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
       quizUrl,
       performanceLabel,
       challengeLine,
+      passMark: passMarkProp,
       brandInitials = "PW",
       className,
     },
     ref,
   ) {
-    const resolvedPercent = percent ?? Math.round((score / total) * 100);
-    const passMark = 60;
+    const passMark = Math.max(0, Math.min(100, passMarkProp ?? 60));
+    const resolvedPercent =
+      total > 0 ? percent ?? Math.round((score / total) * 100) : 0;
     const passLabel = resolvedPercent >= passMark ? "Passed" : "Keep practicing";
 
     return (
@@ -202,6 +206,14 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
             )}
           >
             {score} correct out of {total} questions.
+          </p>
+          <p
+            className={cn(
+              "mt-1 text-[10px] tabular-nums opacity-60",
+              theme === "light" ? "text-zinc-600" : "text-white/75",
+            )}
+          >
+            Pass mark: {passMark}%
           </p>
         </div>
 

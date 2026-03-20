@@ -169,6 +169,7 @@ export function ResultsPage({
               quizTitle={config?.quizTitle}
               quizUrl={config?.shareUrl}
               challengeLine={viralLine}
+              passMark={config?.passMark}
               brandInitials={config?.shareCard?.brandInitials}
             />
           </div>

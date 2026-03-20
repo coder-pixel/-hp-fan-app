@@ -176,6 +176,7 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
                     brandInitials: "PW",
                   },
                   emotionalBands: quiz?.emotionalBands,
+                  passMark: quiz?.passMark,
                 }}
                 onPlayAgain={actions?.restartQuiz}
                 onReviewAnswers={() => setFinishedPanel("review")}

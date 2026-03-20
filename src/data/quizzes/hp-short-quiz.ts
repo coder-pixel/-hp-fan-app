@@ -126,6 +126,8 @@ export const hpShortQuiz: Quiz = {
         "Even Filch expected a bit more—but every great wizard starts somewhere! 📚",
     },
   ],
+  /** Share card “passed” threshold (percent). */
+  passMark: 70,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };

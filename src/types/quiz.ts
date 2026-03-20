@@ -165,6 +165,8 @@ export interface Quiz {
   /** Sound effects (timer, correct/wrong, timeout). Omit or enabled: true to play sounds. */
   sounds?: QuizSoundsConfig;
   emotionalBands?: EmotionalBand[]; // for quiz results page
+  /** Minimum score % to count as “passed” on share card / progress UI. Default 60 when omitted. */
+  passMark?: number;
   createdAt: string;
   updatedAt: string;
 }
