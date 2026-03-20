@@ -29,6 +29,7 @@ export {
   buildViralShareLine,
   buildWhatsAppUrl,
   buildTwitterIntentUrl,
+  buildFacebookSharerUrl,
   copyTextToClipboard,
   downloadNodeAsPng,
   shareNative,
@@ -47,4 +48,5 @@ export type {
   EmotionalBand,
   PerformanceBand,
   QuizResultsUiConfig,
+  QuizSocialShareUiConfig,
 } from "./types/result.types";

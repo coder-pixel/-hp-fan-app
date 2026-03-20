@@ -28,8 +28,13 @@ const data: ResultData = {
     shareCard: {
       headline: "Certified Potterhead 🪄",
       tagline: "I scored 12/15 — can you beat me?",
-      brandInitials: "HP",
+      challengeLine: "I scored 12/15 — beat that.",
       defaultTheme: "dark",
+    },
+    socialShare: {
+      whatsapp: { enabled: true },
+      twitter: { enabled: true },
+      facebook: { enabled: true },
     },
   }}
   onPlayAgain={() => {}}

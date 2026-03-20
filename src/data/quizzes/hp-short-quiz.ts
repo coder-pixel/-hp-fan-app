@@ -110,24 +110,47 @@ export const hpShortQuiz: Quiz = {
     timerPulseLow: true,
     timeout: true,
   },
-  emotionalBands: [
-    {
-      minPercent: 70,
-      message: "Dumbledore would be proud of your magical knowledge! 🧙‍♂️✨",
+  resultsPageConfig: {
+    emotionalBandsConfig: [
+      {
+        minPercent: 70,
+        message: "Dumbledore would be proud of your magical knowledge! 🧙‍♂️✨",
+      },
+      {
+        minPercent: 40,
+        message:
+          "You're on your way to becoming a true wizard! Keep studying those spells. 🪄",
+      },
+      {
+        minPercent: 0,
+        message:
+          "Even Filch expected a bit more—but every great wizard starts somewhere! 📚",
+      },
+    ],
+    socialShareConfig: {
+      whatsapp: {
+        enabled: true,
+        // url: "https://wa.me/?text=I scored high. Can you beat me?",
+      },
+      twitter: {
+        enabled: true,
+        // url: "https://twitter.com/intent/tweet?text=I scored high. Can you beat me?",
+      },
+      facebook: {
+        enabled: true,
+        // url: "https://www.facebook.com/sharer/sharer.php?u=https://www.potterwiki.com/quiz/hp-short-quiz",
+      },
     },
-    {
-      minPercent: 40,
-      message:
-        "You're on your way to becoming a true wizard! Keep studying those spells. 🪄",
-    },
-    {
-      minPercent: 0,
-      message:
-        "Even Filch expected a bit more—but every great wizard starts somewhere! 📚",
-    },
-  ],
+  },
   /** Share card “passed” threshold (percent). */
-  passMark: 70,
+  shareCardConfig: {
+    headline: "Certified Potterhead 🪄",
+    tagline: "I scored high. Can you beat me?",
+    themes: ["light", "dark", "fun"],
+    defaultTheme: "dark",
+    challengeLine: "I challenge you to beat my score!",
+    passMark: 70,
+  },
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };

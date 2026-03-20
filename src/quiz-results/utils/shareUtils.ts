@@ -18,6 +18,12 @@ export function buildTwitterIntentUrl(text: string, url?: string): string {
   return u.toString();
 }
 
+export function buildFacebookSharerUrl(pageUrl: string): string {
+  const u = new URL("https://www.facebook.com/sharer/sharer.php");
+  u.searchParams.set("u", pageUrl);
+  return u.toString();
+}
+
 export async function copyTextToClipboard(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text);

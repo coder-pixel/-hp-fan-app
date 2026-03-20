@@ -1,4 +1,5 @@
 import { forwardRef } from "react";
+import brandLogo from "@/assets/potterwiki-logo.png";
 import type { ShareCardTheme } from "../types/result.types";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +16,6 @@ export interface ShareCardProps {
   challengeLine?: string;
   /** Min % to count as passed; defaults to 60. */
   passMark?: number;
-  brandInitials?: string;
   className?: string;
 }
 
@@ -40,7 +40,6 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
       performanceLabel,
       challengeLine,
       passMark: passMarkProp,
-      brandInitials = "PW",
       className,
     },
     ref,
@@ -72,16 +71,13 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
         />
 
         <div className="flex items-start justify-between gap-3">
-          <div
-            className={cn(
-              "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-sm font-bold tracking-tight",
-              theme === "light"
-                ? "bg-zinc-900 text-amber-100"
-                : "bg-white/15 text-white backdrop-blur-sm",
-            )}
-            aria-hidden
-          >
-            {brandInitials}
+          <div className="flex min-h-10 min-w-0 flex-1 shrink items-center pr-2">
+            <img
+              src={brandLogo}
+              alt="Potterwiki"
+              className="h-9 w-auto max-w-[min(100%,11rem)] object-contain object-left"
+              draggable={false}
+            />
           </div>
           <p
             className={cn(

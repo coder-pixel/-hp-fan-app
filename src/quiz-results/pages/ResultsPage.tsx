@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Download, Link2, MessageCircle, Share2, Twitter } from "lucide-react";
+import { Download, Facebook, Link2, MessageCircle, Share2, Twitter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ import { ShareCard } from "../components/ShareCard";
 import { useResultData } from "../hooks/useResultData";
 import type { QuizResultsUiConfig, ResultData, ShareCardTheme } from "../types/result.types";
 import {
+  buildFacebookSharerUrl,
   buildTwitterIntentUrl,
   buildWhatsAppUrl,
   copyTextToClipboard,
@@ -61,6 +62,17 @@ export function ResultsPage({
     return config?.shareCard?.tagline ?? viralLine;
   }, [config?.shareCard?.tagline, viralLine]);
 
+  const shareChallengeLine = useMemo(
+    () => config?.shareCard?.challengeLine ?? viralLine,
+    [config?.shareCard?.challengeLine, viralLine],
+  );
+
+  const ss = config?.socialShare;
+  const showWhatsApp = !ss || ss.whatsapp?.enabled !== false;
+  const showTwitter = !ss || ss.twitter?.enabled !== false;
+  /** Facebook only appears when explicitly enabled (avoids showing it for `{}`). */
+  const showFacebook = ss?.facebook?.enabled === true;
+
   const _handleChallenge = async () => {
     const shared = await shareNative({
       title: config?.quizTitle,
@@ -94,11 +106,32 @@ export function ResultsPage({
   };
 
   const _openWhatsApp = () => {
+    const override = config?.socialShare?.whatsapp?.url;
+    if (override) {
+      window.open(override, "_blank", "noopener,noreferrer");
+      return;
+    }
     window.open(buildWhatsAppUrl(fullShareText, config?.shareUrl), "_blank", "noopener,noreferrer");
   };
 
   const _openTwitter = () => {
-    window.open(buildTwitterIntentUrl(fullShareText), "_blank", "noopener,noreferrer");
+    const override = config?.socialShare?.twitter?.url;
+    if (override) {
+      window.open(override, "_blank", "noopener,noreferrer");
+      return;
+    }
+    window.open(buildTwitterIntentUrl(fullShareText, config?.shareUrl), "_blank", "noopener,noreferrer");
+  };
+
+  const _openFacebook = () => {
+    const override = config?.socialShare?.facebook?.url;
+    if (override) {
+      window.open(override, "_blank", "noopener,noreferrer");
+      return;
+    }
+    const pageUrl = config?.shareUrl?.trim();
+    if (!pageUrl) return;
+    window.open(buildFacebookSharerUrl(pageUrl), "_blank", "noopener,noreferrer");
   };
 
   const _handleCopyLink = async () => {
@@ -168,46 +201,62 @@ export function ResultsPage({
               performanceLabel={performanceLabel}
               quizTitle={config?.quizTitle}
               quizUrl={config?.shareUrl}
-              challengeLine={viralLine}
+              challengeLine={shareChallengeLine}
               passMark={config?.passMark}
-              brandInitials={config?.shareCard?.brandInitials}
             />
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="flex flex-wrap justify-center gap-2">
             <Button
               type="button"
               variant="outline"
               size="lg"
-              className="min-h-11 rounded-xl"
+              className="min-h-11 min-w-[8.5rem] flex-1 rounded-xl sm:flex-none"
               onClick={handleDownload}
             >
               <Download className="mr-2 h-4 w-4" aria-hidden />
               Image
             </Button>
+            {showWhatsApp ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="min-h-11 min-w-[8.5rem] flex-1 rounded-xl sm:flex-none"
+                onClick={_openWhatsApp}
+              >
+                <MessageCircle className="mr-2 h-4 w-4" aria-hidden />
+                WhatsApp
+              </Button>
+            ) : null}
+            {showTwitter ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="min-h-11 min-w-[8.5rem] flex-1 rounded-xl sm:flex-none"
+                onClick={_openTwitter}
+              >
+                <Twitter className="mr-2 h-4 w-4" aria-hidden />
+                Twitter
+              </Button>
+            ) : null}
+            {showFacebook ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="min-h-11 min-w-[8.5rem] flex-1 rounded-xl sm:flex-none"
+                onClick={_openFacebook}
+              >
+                <Facebook className="mr-2 h-4 w-4" aria-hidden />
+                Facebook
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="outline"
               size="lg"
-              className="min-h-11 rounded-xl"
-              onClick={_openWhatsApp}
-            >
-              <MessageCircle className="mr-2 h-4 w-4" aria-hidden />
-              WhatsApp
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              className="min-h-11 rounded-xl"
-              onClick={_openTwitter}
-            >
-              <Twitter className="mr-2 h-4 w-4" aria-hidden />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              className="min-h-11 rounded-xl"
+              className="min-h-11 min-w-[8.5rem] flex-1 rounded-xl sm:flex-none"
               onClick={_handleCopyLink}
             >
               <Link2 className="mr-2 h-4 w-4" aria-hidden />

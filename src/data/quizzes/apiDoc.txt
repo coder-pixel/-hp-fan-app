@@ -20,7 +20,7 @@ Required keys:
 
 - `title: string`
   - Display title shown in quiz play and results/share contexts.
-  - Used in quiz page heading and share text/card.
+  - Used in quiz page heading, share text, and share card quiz title link.
 
 - `questions: QuizQuestion[]`
   - List of all questions for this quiz.
@@ -50,14 +50,13 @@ Optional keys:
 - `sounds?: QuizSoundsConfig`
   - Controls quiz sound effects.
 
-- `emotionalBands?: EmotionalBand[]`
-  - Custom result-page emotional messages based on score percent.
-  - Passed into results module from `QuizPlayPage`.
+- `resultsPageConfig?: QuizResultsPageConfig`
+  - Results screen: emotional messaging bands and which social share buttons to show.
+  - See section 5a.
 
-- `passMark?: number`
-  - Minimum score percentage considered "Passed" on share-card progress block.
-  - If omitted, defaults to `60`.
-  - Passed from quiz config -> results config -> share card.
+- `shareCardConfig?: QuizShareCardConfig`
+  - Shareable result card: headline, themes, pass threshold, challenge copy.
+  - See section 5b.
 
 ------------------------------------------------------------
 2) Question Object (Current: Multiple Choice)
@@ -150,29 +149,58 @@ Behavior:
 - Optional flags default to enabled behavior unless explicitly false.
 
 ------------------------------------------------------------
-5) Results-related Config Keys
+5) Results & share configuration (on `Quiz`)
 ------------------------------------------------------------
 
-These are quiz-level keys consumed by results UI:
+5a) `resultsPageConfig?: QuizResultsPageConfig`
 
-- `emotionalBands?: Array<{ minPercent: number; message: string }>`
-  - Score percent -> emotional hook message.
-  - Bands are sorted descending by `minPercent`, first match is used.
+- `emotionalBandsConfig?: EmotionalBand[]`
+  - Each item: `{ minPercent: number; message: string }`.
+  - Drives the **top emotional hook** on the results page (`ResultHeader`).
+  - Bands are evaluated **highest `minPercent` first**; first match wins.
+  - Mapped in `QuizPlayPage` → `QuizResultsUiConfig.emotionalBands`.
 
-- `passMark?: number`
-  - Used in share-card progress card.
-  - Controls "Passed" vs "Keep practicing" state and displayed threshold line.
-  - Clamped to 0..100 in UI.
+- `socialShareConfig?: SocialShareConfig`
+  - Keys: `whatsapp`, `twitter`, `facebook` (lowercase), each optional:
+    - `enabled?: boolean` — show that share button on the results page.
+    - `url?: string` — if set, that URL is opened instead of the default share URL builder.
+  - Consumed in `src/quiz-results/pages/ResultsPage.tsx`.
+  - Behavior:
+    - If **`resultsPageConfig` / `socialShareConfig` is omitted**: WhatsApp and Twitter buttons are shown (legacy default). Facebook is **not** shown.
+    - **WhatsApp / Twitter**: if `socialShareConfig` is present, each is shown unless that entry has `enabled: false`.
+    - **Facebook**: shown only when `socialShareConfig.facebook.enabled === true` (must be explicit).
+    - Facebook “default” open uses `buildFacebookSharerUrl(shareUrl)` when `url` override is not set; requires `shareUrl` (current page URL from `QuizPlayPage`).
+
+5b) `shareCardConfig?: QuizShareCardConfig`
+
+- `headline?: string` — Share card title (default in UI: `"Certified Potterhead 🪄"`).
+- `tagline?: string` — Subtext under headline; falls back to generated viral line if omitted.
+- `challengeLine?: string` — Short line used in the card footer / challenge block; falls back to viral line if omitted.
+- `themes?: ShareCardTheme[]` — Subset of `"light" | "dark" | "fun"` for the theme picker.
+- `defaultTheme?: ShareCardTheme` — Initial theme.
+- `passMark?: number` — Minimum **score percent** to show **Passed** on the share card progress block (default **60** in UI if omitted). Clamped 0–100 in `ShareCard`.
+
+Mapped in `QuizPlayPage` → `QuizResultsUiConfig` (`shareCard.*`, `passMark`).
 
 ------------------------------------------------------------
-6) Data Flow (Where Keys Are Used)
+6) Social share enums (reference)
+------------------------------------------------------------
+
+`SocialSharePlatform` (for documentation only; object keys are lowercase strings):
+
+- `whatsapp`
+- `twitter`
+- `facebook`
+
+------------------------------------------------------------
+7) Data Flow (Where Keys Are Used)
 ------------------------------------------------------------
 
 1. Quiz object is selected by route id in:
    - `src/pages/common/QuizPlayPage.tsx`
 
 2. `questions` are transformed for engine:
-   - Option-id based `correctAnswer` -> option index.
+   - Option-id based `correctAnswer` → option index.
    - `explanation`, `hint`, `image`, `type` are preserved for downstream use.
 
 3. Engine executes gameplay:
@@ -180,50 +208,52 @@ These are quiz-level keys consumed by results UI:
    - Sounds from `sounds`
 
 4. On finish:
-   - `answerHistory` + transformed questions -> review answers map.
-   - `emotionalBands` and `passMark` are forwarded into results config.
+   - `answerHistory` + transformed questions → review answers map.
+   - `resultsPageConfig.emotionalBandsConfig` → results emotional headline.
+   - `resultsPageConfig.socialShareConfig` → which share buttons render and optional URL overrides.
+   - `shareCardConfig` → share card copy, themes, and `passMark`.
 
-5. Results module:
-   - Results page, review page, and share card consume derived data and config.
+5. Results module (`src/quiz-results/`):
+   - `ResultsPage`, `ReviewPage`, `ShareCard` consume derived data and `QuizResultsUiConfig`.
 
 ------------------------------------------------------------
-7) Minimal Valid Quiz Example
+8) Minimal Valid Quiz Example
 ------------------------------------------------------------
 
 {
-  id: "example-quiz",
-  title: "Example Quiz",
-  difficulty: "easy",
-  category: "Harry Potter",
-  type: "multiple-choice",
-  questions: [
+  "id": "example-quiz",
+  "title": "Example Quiz",
+  "difficulty": "easy",
+  "category": "Harry Potter",
+  "type": "multiple-choice",
+  "questions": [
     {
-      id: "q1",
-      type: "multiple-choice",
-      question: "Which house is Harry in?",
-      hint: "The Sorting Hat chose it.",
-      options: [
-        { id: 1, text: "Gryffindor" },
-        { id: 2, text: "Slytherin" },
-        { id: 3, text: "Ravenclaw" },
-        { id: 4, text: "Hufflepuff" }
+      "id": "q1",
+      "type": "multiple-choice",
+      "question": "Which house is Harry in?",
+      "hint": "The Sorting Hat chose it.",
+      "options": [
+        { "id": 1, "text": "Gryffindor" },
+        { "id": 2, "text": "Slytherin" },
+        { "id": 3, "text": "Ravenclaw" },
+        { "id": 4, "text": "Hufflepuff" }
       ],
-      correctAnswer: 1,
-      explanation: "Harry was sorted into Gryffindor."
+      "correctAnswer": 1,
+      "explanation": "Harry was sorted into Gryffindor."
     }
   ],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "updatedAt": "2025-01-01T00:00:00.000Z"
 }
 
 ------------------------------------------------------------
-8) Authoring Checklist
+9) Authoring Checklist
 ------------------------------------------------------------
 
 - Ensure every question has a unique `id`.
 - Ensure `correctAnswer` matches an existing `options[].id`.
 - Keep `type` as `"multiple-choice"` for current renderer support.
 - Add `explanation` if you want rich review cards.
-- Use `emotionalBands` for custom top-line results messaging.
-- Set `passMark` if this quiz needs a custom passing threshold.
-
+- Put custom results messaging under `resultsPageConfig.emotionalBandsConfig`.
+- Put share-card visuals and pass threshold under `shareCardConfig` (`passMark`, `headline`, `themes`, etc.).
+- Use `resultsPageConfig.socialShareConfig` to toggle platforms or supply custom share URLs.

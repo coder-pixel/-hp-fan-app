@@ -171,12 +171,16 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
                 config={{
                   quizTitle: config?.title,
                   shareUrl: typeof window !== "undefined" ? window.location.href : undefined,
+                  emotionalBands: quiz?.resultsPageConfig?.emotionalBandsConfig,
+                  socialShare: quiz?.resultsPageConfig?.socialShareConfig,
+                  passMark: quiz?.shareCardConfig?.passMark,
                   shareCard: {
-                    headline: "Certified Potterhead 🪄",
-                    brandInitials: "PW",
+                    headline: quiz?.shareCardConfig?.headline ?? "Certified Potterhead 🪄",
+                    tagline: quiz?.shareCardConfig?.tagline,
+                    challengeLine: quiz?.shareCardConfig?.challengeLine,
+                    themes: quiz?.shareCardConfig?.themes,
+                    defaultTheme: quiz?.shareCardConfig?.defaultTheme,
                   },
-                  emotionalBands: quiz?.emotionalBands,
-                  passMark: quiz?.passMark,
                 }}
                 onPlayAgain={actions?.restartQuiz}
                 onReviewAnswers={() => setFinishedPanel("review")}

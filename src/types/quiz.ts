@@ -1,4 +1,4 @@
-import { EmotionalBand } from "@/quiz-results";
+import { EmotionalBand, ShareCardTheme } from "@/quiz-results";
 
 export enum QuizDifficulty {
   EASY = "easy",
@@ -153,6 +153,35 @@ export function isMultipleChoiceQuestion(
 //   return q.type === "order";
 // }
 
+export enum SocialSharePlatform {
+  WHATSAPP = "whatsapp",
+  TWITTER = "twitter",
+  FACEBOOK = "facebook",
+}
+
+export type SocialShareConfig = {
+  [P in SocialSharePlatform]?: {
+    /** Show share button for this platform */
+    enabled?: boolean;
+    /** Optional override for share URL. If not provided, a default will be used. */
+    url?: string;
+  };
+};
+
+export interface QuizResultsPageConfig {
+  emotionalBandsConfig?: EmotionalBand[];
+  socialShareConfig?: SocialShareConfig;
+}
+
+export interface QuizShareCardConfig {
+  headline?: string;
+  tagline?: string;
+  themes?: ShareCardTheme[];
+  defaultTheme?: ShareCardTheme;
+  challengeLine?: string;
+  passMark?: number; /** Minimum score % to count as “passed” on share card / progress UI. Default 60 when omitted. */
+}
+
 export interface Quiz {
   id: string;
   title: string;
@@ -164,9 +193,9 @@ export interface Quiz {
   lifelineConfig?: QuizPluginsConfig;
   /** Sound effects (timer, correct/wrong, timeout). Omit or enabled: true to play sounds. */
   sounds?: QuizSoundsConfig;
-  emotionalBands?: EmotionalBand[]; // for quiz results page
-  /** Minimum score % to count as “passed” on share card / progress UI. Default 60 when omitted. */
-  passMark?: number;
+  resultsPageConfig?: QuizResultsPageConfig; // for quiz results page
+
+  shareCardConfig?: QuizShareCardConfig; // for quiz share card
   createdAt: string;
   updatedAt: string;
 }
