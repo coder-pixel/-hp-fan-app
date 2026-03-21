@@ -39,6 +39,7 @@ const data: ResultData = {
   }}
   onPlayAgain={() => {}}
   onReviewAnswers={() => setView("review")}
+  onShareCard={() => setView("share")}
 />;
 ```
 

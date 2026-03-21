@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ResultsPage,
   ReviewPage,
+  ShareCardPage,
   mapHistoryToResultAnswers,
 } from "@/quiz-results";
 import { QUIZ_TIMEOUT_ANSWER_INDEX } from "@/quiz-engine/constants";
@@ -74,7 +75,7 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
   const [askDumbledoreModalOpen, setAskDumbledoreModalOpen] = useState(false);
   const askDumbledoreQuestionIndexRef = useRef<number | null>(null);
   const [pollModalOpen, setPollModalOpen] = useState(false);
-  const [finishedPanel, setFinishedPanel] = useState<"results" | "review">("results");
+  const [finishedPanel, setFinishedPanel] = useState<"results" | "review" | "share">("results");
   const legilimencyQuestionIndexRef = useRef<number | null>(null);
   const prevHiddenOptionsLenRef = useRef(0);
 
@@ -133,6 +134,24 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
     return { score, total, answers };
   }, [status, score, questions, answerHistory]);
 
+  const quizResultsUiConfig = useMemo(
+    () => ({
+      quizTitle: config?.title,
+      shareUrl: typeof window !== "undefined" ? window.location.href : undefined,
+      emotionalBands: quiz?.resultsPageConfig?.emotionalBandsConfig,
+      socialShare: quiz?.resultsPageConfig?.socialShareConfig,
+      passMark: quiz?.shareCardConfig?.passMark,
+      shareCard: {
+        headline: quiz?.shareCardConfig?.headline ?? "Certified Potterhead 🪄",
+        tagline: quiz?.shareCardConfig?.tagline,
+        challengeLine: quiz?.shareCardConfig?.challengeLine,
+        themes: quiz?.shareCardConfig?.themes,
+        defaultTheme: quiz?.shareCardConfig?.defaultTheme,
+      },
+    }),
+    [config?.title, quiz],
+  );
+
   if (status === "instructions") {
     return (
       <div className="relative z-10 mx-auto max-w-3xl flex flex-col items-center justify-center text-center">
@@ -164,26 +183,20 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
         <>
           {finishedPanel === "review" ? (
             <ReviewPage data={resultPayload} onBack={() => setFinishedPanel("results")} />
+          ) : finishedPanel === "share" ? (
+            <ShareCardPage
+              data={resultPayload}
+              config={quizResultsUiConfig}
+              onBack={() => setFinishedPanel("results")}
+            />
           ) : (
             <>
               <ResultsPage
                 data={resultPayload}
-                config={{
-                  quizTitle: config?.title,
-                  shareUrl: typeof window !== "undefined" ? window.location.href : undefined,
-                  emotionalBands: quiz?.resultsPageConfig?.emotionalBandsConfig,
-                  socialShare: quiz?.resultsPageConfig?.socialShareConfig,
-                  passMark: quiz?.shareCardConfig?.passMark,
-                  shareCard: {
-                    headline: quiz?.shareCardConfig?.headline ?? "Certified Potterhead 🪄",
-                    tagline: quiz?.shareCardConfig?.tagline,
-                    challengeLine: quiz?.shareCardConfig?.challengeLine,
-                    themes: quiz?.shareCardConfig?.themes,
-                    defaultTheme: quiz?.shareCardConfig?.defaultTheme,
-                  },
-                }}
+                config={quizResultsUiConfig}
                 onPlayAgain={actions?.restartQuiz}
                 onReviewAnswers={() => setFinishedPanel("review")}
+                onShareCard={() => setFinishedPanel("share")}
               />
               <NextQuizCard />
             </>

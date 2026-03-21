@@ -5,7 +5,9 @@
 
 export { ResultsPage } from "./pages/ResultsPage";
 export { ReviewPage } from "./pages/ReviewPage";
+export { ShareCardPage } from "./pages/ShareCardPage";
 export type { ReviewFilter } from "./pages/ReviewPage";
+export type { ShareCardPageProps } from "./pages/ShareCardPage";
 
 export { ResultHeader } from "./components/ResultHeader";
 export { ScoreVisualizer } from "./components/ScoreVisualizer";

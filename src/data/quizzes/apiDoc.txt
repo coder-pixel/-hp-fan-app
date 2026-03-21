@@ -164,7 +164,7 @@ Behavior:
   - Keys: `whatsapp`, `twitter`, `facebook` (lowercase), each optional:
     - `enabled?: boolean` — show that share button on the results page.
     - `url?: string` — if set, that URL is opened instead of the default share URL builder.
-  - Consumed in `src/quiz-results/pages/ResultsPage.tsx`.
+  - Consumed in `src/quiz-results/pages/ShareCardPage.tsx` (dedicated share screen).
   - Behavior:
     - If **`resultsPageConfig` / `socialShareConfig` is omitted**: WhatsApp and Twitter buttons are shown (legacy default). Facebook is **not** shown.
     - **WhatsApp / Twitter**: if `socialShareConfig` is present, each is shown unless that entry has `enabled: false`.
@@ -214,7 +214,10 @@ Mapped in `QuizPlayPage` → `QuizResultsUiConfig` (`shareCard.*`, `passMark`).
    - `shareCardConfig` → share card copy, themes, and `passMark`.
 
 5. Results module (`src/quiz-results/`):
-   - `ResultsPage`, `ReviewPage`, `ShareCard` consume derived data and `QuizResultsUiConfig`.
+   - `ResultsPage` — score summary + CTAs (Play again, Review answers, **Share card**).
+   - `ShareCardPage` — full share flow (card preview, themes, download, social) when user taps **Share card** (same route, `QuizPlayPage` switches `finished` sub-view: `results` | `review` | `share`).
+   - `ReviewPage` — per-question review.
+   - `ShareCard` component — presentational card used inside `ShareCardPage`.
 
 ------------------------------------------------------------
 8) Minimal Valid Quiz Example

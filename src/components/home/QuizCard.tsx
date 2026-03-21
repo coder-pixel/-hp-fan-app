@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 interface QuizCardProps {
+  quizId: string;
   title: string;
   description: string;
   questionCount: number;
@@ -13,7 +15,7 @@ const difficultyColors: Record<string, string> = {
   Hard: "bg-red-900/40 text-red-300 border-red-700/40",
 };
 
-const QuizCard = ({ title, description, questionCount, difficulty }: QuizCardProps) => {
+const QuizCard = ({ quizId, title, description, questionCount, difficulty }: QuizCardProps) => {
   return (
     <motion.div
       whileHover={{ y: -8 }}
@@ -33,9 +35,12 @@ const QuizCard = ({ title, description, questionCount, difficulty }: QuizCardPro
       <h3 className="font-display text-lg font-semibold leading-snug">{title}</h3>
       <p className="text-sm text-muted-foreground font-body leading-relaxed flex-1">{description}</p>
 
-      <button className="mt-auto w-full py-3 rounded-lg border font-semibold text-sm font-body transition-all duration-300 border-secondary/25 bg-secondary/10 text-secondary-foreground hover:bg-secondary/25 hover:border-secondary/50 hover:glow-purple">
+      <Link
+        to={`/quiz/${quizId}`}
+        className="mt-auto w-full py-3 rounded-lg border font-semibold text-sm font-body text-center transition-all duration-300 border-secondary/25 bg-secondary/10 text-secondary-foreground hover:bg-secondary/25 hover:border-secondary/50 hover:glow-purple"
+      >
         Play Quiz
-      </button>
+      </Link>
     </motion.div>
   );
 };

@@ -1,32 +1,32 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/home/HeroSection";
 import QuizCard from "@/components/home/QuizCard";
-import PollCard from "@/components/home/PollCard";
 import FunFacts from "@/components/home/FunFacts";
 import CTASection from "@/components/home/CTASection";
+import { quizzes } from "@/data/quizzes";
+import type { Quiz } from "@/types/quiz";
+import { QuizDifficulty } from "@/types/quiz";
 
-const quizzes = [
-  {
-    title: "Which Hogwarts House Are You?",
-    description: "Answer personality questions to discover your true Hogwarts house. The Sorting Hat awaits.",
-    questionCount: 12,
-    difficulty: "Easy" as const,
-  },
-  {
-    title: "Ultimate Harry Potter Trivia",
-    description: "Test your knowledge across all seven books and eight films. Only true fans survive.",
-    questionCount: 20,
-    difficulty: "Hard" as const,
-  },
-  {
-    title: "How Well Do You Know Snape?",
-    description: "Explore the complex life of Severus Snape — hero, villain, or something in between?",
-    questionCount: 15,
-    difficulty: "Medium" as const,
-  },
-];
+const TOP_QUIZ_COUNT = 3;
+
+const difficultyLabel: Record<QuizDifficulty, "Easy" | "Medium" | "Hard"> = {
+  [QuizDifficulty.EASY]: "Easy",
+  [QuizDifficulty.MEDIUM]: "Medium",
+  [QuizDifficulty.HARD]: "Hard",
+};
+
+function quizHomeDescription(quiz: Quiz): string {
+  const line =
+    quiz.shareCardConfig?.tagline ??
+    quiz.shareCardConfig?.headline;
+  if (line) return line;
+  return `${quiz.category} — ${quiz.questions.length} questions.`;
+}
+
+const featuredQuizzes = quizzes.slice(0, TOP_QUIZ_COUNT);
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 30 },
@@ -56,26 +56,25 @@ const HomePage = () => {
             Popular <span className="text-gradient-gold">Quizzes</span>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-7">
-            {quizzes.map((quiz) => (
-              <QuizCard key={quiz.title} {...quiz} />
+            {featuredQuizzes.map((quiz) => (
+              <QuizCard
+                key={quiz.id}
+                quizId={quiz.id}
+                title={quiz.title}
+                description={quizHomeDescription(quiz)}
+                questionCount={quiz.questions.length}
+                difficulty={difficultyLabel[quiz.difficulty] ?? "Medium"}
+              />
             ))}
           </div>
-        </div>
-      </motion.section>
-
-      <div className="section-divider max-w-xs mx-auto" />
-
-      {/* Poll */}
-      <motion.section
-        id="polls"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-        variants={sectionVariants}
-        className="py-24 px-4"
-      >
-        <div className="container mx-auto max-w-5xl">
-          <PollCard />
+          <p className="text-center mt-10">
+            <Link
+              to="/quizzes"
+              className="text-sm font-body text-accent hover:text-accent/90 underline-offset-4 hover:underline"
+            >
+              View all quizzes
+            </Link>
+          </p>
         </div>
       </motion.section>
 

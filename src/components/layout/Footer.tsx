@@ -3,7 +3,6 @@ import { APP_LOGO_SRC, APP_NAME } from "@/config/appBranding";
 const footerLinks = [
   { label: "Home", href: "#" },
   { label: "Quizzes", href: "#quizzes" },
-  { label: "Polls", href: "#polls" },
   { label: "About", href: "#about" },
 ];
 
