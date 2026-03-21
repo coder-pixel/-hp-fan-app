@@ -1,18 +1,18 @@
-import { BookOpen, RotateCcw, Users } from "lucide-react";
+import { BookOpen, RotateCcw, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export interface ActionButtonsProps {
   onPlayAgain: () => void;
   onReviewAnswers: () => void;
-  onChallengeFriends: () => void;
+  onShareCard: () => void;
   className?: string;
 }
 
 export function ActionButtons({
   onPlayAgain,
   onReviewAnswers,
-  onChallengeFriends,
+  onShareCard,
   className,
 }: ActionButtonsProps) {
   return (
@@ -41,10 +41,10 @@ export function ActionButtons({
         type="button"
         size="lg"
         className="min-h-12 w-full sm:w-auto gap-2 rounded-xl btn-primary-gold"
-        onClick={onChallengeFriends}
+        onClick={onShareCard}
       >
-        <Users className="h-4 w-4" aria-hidden />
-        Challenge friends
+        <Share2 className="h-4 w-4" aria-hidden />
+        Share card
       </Button>
     </div>
   );
