@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const CTASection = () => {
   return (
@@ -23,9 +24,9 @@ const CTASection = () => {
         <p className="text-muted-foreground font-body mb-10 text-base sm:text-lg leading-relaxed">
           Only 10% of fans can score 10/10 on the ultimate Harry Potter quiz.
         </p>
-        <a href="#" className="btn-primary-gold text-lg px-12 py-4 inline-block">
+        <Link to="/quizzes" className="btn-primary-gold text-lg px-12 py-4 inline-block">
           Start the Ultimate Quiz
-        </a>
+        </Link>
       </motion.div>
     </section>
   );

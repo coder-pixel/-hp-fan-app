@@ -4,7 +4,7 @@ import type { QuizEventName, QuizEventHandler } from "./engineTypes";
  * Lightweight typed event emitter for the quiz engine.
  */
 export class QuizEventBus {
-  private listeners = new Map<string, Set<Function>>();
+  private listeners = new Map<string, Set<QuizEventHandler<QuizEventName>>>();
 
   on<E extends QuizEventName>(event: E, handler: QuizEventHandler<E>) {
     if (!this.listeners.has(event)) this.listeners.set(event, new Set());
@@ -15,7 +15,10 @@ export class QuizEventBus {
     this.listeners.get(event)?.delete(handler);
   }
 
-  emit<E extends QuizEventName>(event: E, payload: Parameters<QuizEventHandler<E>>[0]) {
+  emit<E extends QuizEventName>(
+    event: E,
+    payload: Parameters<QuizEventHandler<E>>[0],
+  ) {
     this.listeners.get(event)?.forEach((fn) => fn(payload));
   }
 

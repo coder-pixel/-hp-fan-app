@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import brandLogo from "@/assets/potterwiki-logo.png";
 
 const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Quizlet", href: "/quizlet" },
-  { label: "This or That", href: "/this-or-that" },
-  { label: "Quizzes", href: "/#quizzes" },
-  { label: "Polls", href: "/#polls" },
+  // { label: "Home", href: "/" },
+  // { label: "Quiz", href: "/quiz" },
+  // { label: "This or That", href: "/this-or-that" },
+  { label: "Quizzes", href: "/quizzes" },
+  // { label: "Polls", href: "/#polls" },
 ];
 
 const linkClass =
@@ -30,28 +31,34 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? "bg-background/70 backdrop-blur-xl border-b border-border/50 shadow-[0_4px_30px_-10px_hsla(0,0%,0%,0.5)]"
-          : "bg-transparent"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
+        ? "bg-background/70 backdrop-blur-xl border-b border-border/50 shadow-[0_4px_30px_-10px_hsla(0,0%,0%,0.5)]"
+        : "bg-transparent"
+        }`}
     >
       <div className="container mx-auto px-4 md:px-8 flex items-center justify-between h-16">
         <Link to="/" className="font-display text-xl md:text-2xl font-bold tracking-wider">
-          <span className="text-gradient-gold">Wizard</span>
-          <span className="text-foreground/90">Verse</span>
+          <span className="inline-flex items-center gap-2">
+            <img
+              src={brandLogo}
+              alt="Potterwiki"
+              className="h-8 w-8 rounded-md object-cover ring-1 ring-border/40"
+            />
+            <span className="text-gradient-gold">Potter</span>
+            <span className="text-foreground/90">wiki</span>
+          </span>
         </Link>
 
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) =>
-            isHash(link.href) ? (
-              <a key={link.label} href={link.href} className={linkClass}>
-                {link.label}
+          {navLinks?.map((link) =>
+            isHash(link?.href) ? (
+              <a key={link?.label} href={link?.href} className={linkClass}>
+                {link?.label}
               </a>
             ) : (
-              <Link key={link.label} to={link.href} className={linkClass}>
-                {link.label}
+              <Link key={link?.label} to={link?.href} className={linkClass}>
+                {link?.label}
               </Link>
             )
           )}
@@ -77,24 +84,24 @@ const Navbar = () => {
             className="md:hidden bg-background/95 backdrop-blur-xl border-b border-border/50 overflow-hidden"
           >
             <div className="flex flex-col items-center gap-5 py-8">
-              {navLinks.map((link) =>
-                isHash(link.href) ? (
+              {navLinks?.map((link) =>
+                isHash(link?.href) ? (
                   <a
-                    key={link.label}
-                    href={link.href}
+                    key={link?.label}
+                    href={link?.href}
                     onClick={() => setMobileOpen(false)}
                     className={mobileLinkClass}
                   >
-                    {link.label}
+                    {link?.label}
                   </a>
                 ) : (
                   <Link
-                    key={link.label}
-                    to={link.href}
+                    key={link?.label}
+                    to={link?.href}
                     onClick={() => setMobileOpen(false)}
                     className={mobileLinkClass}
                   >
-                    {link.label}
+                    {link?.label}
                   </Link>
                 )
               )}
