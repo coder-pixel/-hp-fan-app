@@ -1,4 +1,4 @@
-import brandLogo from "@/assets/potterwiki-logo.png";
+import { APP_LOGO_SRC, APP_NAME } from "@/config/appBranding";
 
 const footerLinks = [
   { label: "Home", href: "#" },
@@ -20,12 +20,11 @@ const Footer = () => {
             <h3 className="font-display text-xl font-bold tracking-wider">
               <span className="inline-flex items-center gap-2">
                 <img
-                  src={brandLogo}
-                  alt="Potterwiki"
+                  src={APP_LOGO_SRC}
+                  alt={APP_NAME}
                   className="h-8 w-8 rounded-md object-cover ring-1 ring-border/40"
                 />
-                <span className="text-gradient-gold">Potter</span>
-                <span className="text-foreground/90">wiki</span>
+                <span className="text-gradient-gold">{APP_NAME}</span>
               </span>
             </h3>
           </div>

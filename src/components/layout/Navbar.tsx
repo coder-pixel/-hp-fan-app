@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import brandLogo from "@/assets/potterwiki-logo.png";
+import { APP_LOGO_SRC, APP_NAME } from "@/config/appBranding";
 
 const navLinks = [
   // { label: "Home", href: "/" },
@@ -40,12 +40,11 @@ const Navbar = () => {
         <Link to="/" className="font-display text-xl md:text-2xl font-bold tracking-wider">
           <span className="inline-flex items-center gap-2">
             <img
-              src={brandLogo}
-              alt="Potterwiki"
+              src={APP_LOGO_SRC}
+              alt={APP_NAME}
               className="h-8 w-8 rounded-md object-cover ring-1 ring-border/40"
             />
-            <span className="text-gradient-gold">Potter</span>
-            <span className="text-foreground/90">wiki</span>
+            <span className="text-gradient-gold">{APP_NAME}</span>
           </span>
         </Link>
 
