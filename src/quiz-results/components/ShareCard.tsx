@@ -53,7 +53,8 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
       <div
         ref={ref}
         className={cn(
-          "relative mx-auto flex w-full max-w-[380px] flex-col justify-between overflow-hidden rounded-3xl border p-6 shadow-xl aspect-[9/16]",
+          // No fixed aspect + clip: 9/16 with overflow-hidden was cutting off bottom on mobile when content is taller than the box.
+          "relative mx-auto flex w-full max-w-[380px] flex-col gap-3 overflow-hidden rounded-3xl border p-4 shadow-xl sm:gap-4 sm:p-6",
           themeShell[theme],
           className,
         )}
@@ -121,10 +122,10 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
 
 
 
-        <div className="flex flex-1 flex-col justify-center">
+        <div className="flex flex-col py-1">
           <p
             className={cn(
-              "font-display text-xl font-bold leading-snug sm:text-2xl",
+              "font-display text-lg font-bold leading-snug sm:text-xl md:text-2xl",
               theme === "fun" && "drop-shadow-sm",
             )}
           >
@@ -140,7 +141,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
           </p>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2  py-4">
+        <div className="mt-1 grid grid-cols-2 gap-2 sm:mt-2 sm:py-1">
           <div
             className={cn(
               "rounded-2xl border px-3 py-2",
@@ -164,14 +165,14 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
         <div className="space-y-1 text-center">
           <p
             className={cn(
-              "text-7xl leading-none font-bold tabular-nums tracking-tight font-display",
+              "text-5xl leading-none font-bold tabular-nums tracking-tight font-display sm:text-6xl md:text-7xl",
               theme === "fun" && "drop-shadow-md",
             )}
           >
             {score}
             <span
               className={cn(
-                "text-3xl font-semibold opacity-80",
+                "text-2xl font-semibold opacity-80 sm:text-3xl",
                 theme === "light" ? "text-zinc-500" : "text-white/70",
               )}
             >

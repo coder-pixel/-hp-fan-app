@@ -140,7 +140,10 @@ export function ShareCardPage({ data, config, onBack, className }: ShareCardPage
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-      className={cn("w-full max-w-xl mx-auto", className)}
+      className={cn(
+        "w-full max-w-xl mx-auto pb-[max(2rem,calc(env(safe-area-inset-bottom,0px)+1.5rem))]",
+        className,
+      )}
     >
       <header className="sticky top-0 z-30 -mx-1 mb-6 flex items-center gap-2 border-b border-border/40 bg-background/90 px-1 py-3 backdrop-blur-md supports-[backdrop-filter]:bg-background/75">
         <Button
@@ -161,7 +164,7 @@ export function ShareCardPage({ data, config, onBack, className }: ShareCardPage
         </div>
       </header>
 
-      <div className="space-y-6 px-1 pb-10 sm:px-0">
+      <div className="space-y-6 px-1 pb-4 sm:px-0">
         <div className="flex justify-center">
           <ShareCard
             ref={shareCardRef}
