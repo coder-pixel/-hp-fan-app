@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Potter Wiki">
+  <defs>
+    <linearGradient id="pw-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8c547"/>
+      <stop offset="100%" stop-color="#b8860b"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="#161022"/>
+  <path fill="url(#pw-gold)" d="M18.2 4.5 11 17.2h4.1l-1.8 10.3 9.7-13.1h-4.4l1.6-9.9z"/>
+</svg>
