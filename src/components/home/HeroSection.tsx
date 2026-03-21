@@ -78,7 +78,7 @@ const HeroSection = () => {
           transition={{ duration: 0.8, delay: 0.3 }}
           className="text-muted-foreground text-base sm:text-lg md:text-xl mb-12 max-w-2xl mx-auto font-body leading-relaxed"
         >
-          Take magical quizzes, vote in wizard polls and discover hidden secrets of the wizarding world.
+          Take magical quizzes and discover hidden secrets of the wizarding world.
         </motion.p>
 
         <motion.div
@@ -90,8 +90,8 @@ const HeroSection = () => {
           <Link to="/quizzes" className="btn-primary-gold text-base">
             Take a Quiz
           </Link>
-          <a href="#polls" className="btn-secondary-outline text-base">
-            Today's Poll
+          <a href="#quizzes" className="btn-secondary-outline text-base">
+            Featured quizzes
           </a>
         </motion.div>
       </div>
