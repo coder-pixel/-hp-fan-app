@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables
+.env*
+# This ignores all files starting with .env (e.g., .env, .env.local, .env.development, .env.production, .env.test, etc.)

@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import brandLogo from "@/assets/potterwiki-logo.png";
+import { APP_LOGO_SRC, APP_NAME } from "@/config/appBranding";
 import type { ShareCardTheme } from "../types/result.types";
 import { cn } from "@/lib/utils";
 
@@ -73,8 +73,8 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-h-10 min-w-0 flex-1 shrink items-center pr-2">
             <img
-              src={brandLogo}
-              alt="Potterwiki"
+              src={APP_LOGO_SRC}
+              alt={APP_NAME}
               className="h-9 w-auto max-w-[min(100%,11rem)] object-contain object-left"
               draggable={false}
             />
