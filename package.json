@@ -7,11 +7,10 @@
     "dev": "vite --mode development",
     "build": "vite build --mode production",
     "build:dev": "vite build --mode development",
-    "build:prod": "vite build --mode production",
+    "build:live": "vite build --mode production",
     "lint": "eslint .",
-    "dev:prod-env": "vite --mode production",
+    "dev:live": "vite --mode production",
     "preview": "vite preview --mode production",
-    "start:prod": "vite build --mode production && vite preview --mode production",
     "test": "vitest run",
     "test:watch": "vitest"
   },
