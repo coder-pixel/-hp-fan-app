@@ -10,6 +10,10 @@ import NotFound from "./pages/common/NotFound.tsx";
 import ThisOrThatPage from "./pages/common/ThisOrThatPage.tsx";
 import QuizzesPage from "./pages/common/QuizzesPage.tsx";
 import QuizPlayPage from "./pages/common/QuizPlayPage.tsx";
+import DashboardPage from "./pages/protected/user-module/DashboardPage.tsx";
+import SavedPage from "./pages/protected/user-module/SavedPage.tsx";
+import SettingsPage from "./pages/protected/user-module/SettingsPage.tsx";
+import ProfilePage from "./pages/protected/user-module/ProfilePage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +42,11 @@ const App = () => (
           <Route path="/quiz/:id" element={<QuizPlayPage />} />
           <Route path="/quizzes" element={<QuizzesPage />} />
           <Route path="/this-or-that" element={<ThisOrThatPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/saved" element={<SavedPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
