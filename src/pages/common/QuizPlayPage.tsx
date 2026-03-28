@@ -374,5 +374,7 @@ const QuizPlayPage = () => {
   );
 };
 
+// QuizPlayPage.routePath = "/quiz/:id"; // This is used to create the route path for the quiz play page
+
 export default QuizPlayPage;
 
