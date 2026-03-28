@@ -1,0 +1,451 @@
+================================================================================
+SOFTWARE REQUIREMENTS SPECIFICATION (SRS)
+Project: hp_fan_app (Vite + React)
+Document basis: Static analysis of repository as of 2026-03-28
+Accuracy note: Items reflect implemented code paths only. Status markers:
+  ✅ Implemented   ⚠️ Partial   ❌ Not Implemented
+================================================================================
+
+1. INTRODUCTION
+--------------------------------------------------------------------------------
+
+1.1 Purpose
+-----------
+The system is a client-side single-page application themed around Harry Potter
+fandom. It delivers static quiz content, an interactive quiz play experience
+(with optional timer and lifelines), lightweight “This or That” gameplay,
+post-quiz results/review/share flows, and user-area screens backed by in-memory
+mock data (no observable REST/GraphQL integration in src).
+
+
+1.2 Scope (actual)
+------------------
+In scope and present in code:
+  • Marketing/landing-style home with featured quizzes (from local data files).
+  • Browse-all quizzes page and quiz play for quizzes defined under src/data/quizzes.
+  • Quiz engine: instructions → play → score; optional per-question timer; lifelines;
+    streak-related behavior; sound toggles (client-side audio helpers).
+  • Results, answer review, and share-card style UI (quiz-results module).
+  • “This or That” page using local question data.
+  • User module pages: dashboard (stats + leaderboard + history), saved items,
+    settings, profile — all driven by mock hooks/data unless otherwise noted.
+  • Route auto-discovery from filesystem conventions under src/pages.
+  • Route guards for “protected” vs “guest-only public” routes.
+  • Google Analytics 4 bootstrap: init + SPA page-view tracking (react-ga4).
+
+Explicitly out of scope / not evidenced in code:
+  • Real backend authentication, user persistence, or cloud sync.
+  • Admin console or server-enforced admin capabilities.
+  • Production API client layer under a dedicated src/services (none found).
+
+
+1.3 Tech stack (detected)
+-------------------------
+  • Runtime: React 18, TypeScript
+  • Build: Vite 5
+  • Routing: react-router-dom v6
+  • Server state / async toolkit: @tanstack/react-query (provider present;
+    widespread data-fetching usage not verified for all features)
+  • Styling: Tailwind CSS, tailwindcss-animate, class-variance-authority, clsx,
+    tailwind-merge
+  • UI primitives: Radix UI packages, shadcn-style components under
+    src/components/ui
+  • Forms/validation: react-hook-form, zod, @hookform/resolvers
+  • Motion: framer-motion
+  • Charts (dependency present): recharts
+  • Analytics: react-ga4, custom wrapper under src/analytics
+  • Testing: Vitest, @testing-library/react, Playwright (configs present)
+
+State management: No Redux. Local React state, context (quiz engine), and
+TanStack Query provider only.
+
+
+2. OVERALL DESCRIPTION
+--------------------------------------------------------------------------------
+
+2.1 System architecture (from folders and patterns)
+---------------------------------------------------
+  • pages/: Split into public/, protected/, common/. Files are picked up by
+    Vite import.meta.glob (eager) in src/routes/routeLoader.ts.
+  • routes/: AppRouter composes routes from loadAppRoutes(); guards in guards/.
+  • quiz-engine/: Class-based QuizEngine + event bus; plugins (timer, lifelines,
+    streak, revelio); React QuizProvider/useQuiz bridge.
+  • quiz-results/: Results/review/share pages and helpers (score mapping, share).
+  • components/: Layout (Navbar, Footer), quiz UI, home sections, user-module
+    widgets, thisOrThat, and shared UI.
+  • data/: Static quiz definitions and auxiliary datasets (e.g. thisOrThat).
+  • hooks/user-module/: useUser, useBookmarks — mock-oriented.
+  • auth/: useAuth hook (localStorage-oriented design, currently stubbed).
+  • analytics/: init, page tracking, analyticsService API (see gaps for wiring).
+
+Separation of concerns is strong for routing metadata (routeMeta), quiz engine,
+and results; user identity and auth are split across useAuth and useUser without
+a single source of truth.
+
+
+2.2 User flow (derived from routing and navigation)
+---------------------------------------------------
+Typical flows evidenced by code and Navbar links:
+  1) Land on “/” (Index → HomePage): browse featured quizzes → link to
+     /quizzes or /quiz/{id} from cards.
+  2) /quizzes: list quizzes → “Play” navigates to /quiz/{quizId} (see §4.2 for
+     route path mismatch risk).
+  3) Quiz play: instructions → timed/untimed MCQ play → results → optional
+     review/share → suggested next quiz card.
+  4) Protected-area links (Dashboard, Saved) require PrivateRoute acceptance
+     (currently always passes — see §3–4.1).
+  5) Profile via /profile; Settings not in Navbar (reachable only by direct URL
+     /settings per file-based routing).
+
+Note: /this-or-that exists as a page route but is not linked from Navbar
+(commented entries in Navbar suggest it was optional).
+
+
+2.3 Assumptions (documented from behavior, not product intent)
+-------------------------------------------------------------
+  • Quiz content is bundled with the app (static TS modules), not loaded from
+    an external CMS API visible in this repo.
+  • “Authenticated” routing is intended but useAuth currently short-circuits to
+    authenticated for all sessions.
+  • User-specific numbers on Profile (e.g. hard-coded stat strings) are
+    decorative unless tied to mockAttempts elsewhere.
+
+
+3. USER ROLES (INFERRED FROM CODE)
+--------------------------------------------------------------------------------
+
+3.1 Guest (unauthenticated visitor)
+-----------------------------------
+⚠️ Partial (structural only)
+  • PublicRoute + LoginPage.guestOnly exist to keep logged-in users off /login.
+  • useAuth currently forces isAuthenticated: true, so guest behavior is not
+    reachable in practice.
+
+
+3.2 Authenticated user
+----------------------
+✅ Implemented (UI + routing structure)
+  • Protected routes wrap content with PrivateRoute when route type is
+    “protected”.
+  • User-module pages assume an active experience (dashboard, saved, settings).
+
+⚠️ Partial (substance)
+  • No real credential verification; session is not tied to useUser.
+
+
+3.3 Admin
+---------
+⚠️ Partial (type-level / unused)
+  • useAuth sets user.role to "admin" in the stub path.
+  • ProtectedRoute supports role checks and redirect to /unauthorized, but
+    AppRouter does not wrap routes with ProtectedRoute — only PrivateRoute.
+  • No admin-only pages or admin dashboards found under pages/.
+
+Conclusion: Admin is ❌ Not Implemented as an enforceable application role;
+only placeholder data exists in useAuth.
+
+
+4. FUNCTIONAL REQUIREMENTS
+--------------------------------------------------------------------------------
+
+4.1 Authentication & user management
+------------------------------------
+Login UI
+  ✅ Implemented — src/pages/public/LoginPage.tsx (form layout, toggles,
+     links). Submit handler prevents default only; no credential POST.
+
+Signup
+  ❌ Not Implemented — Link to /signup exists; no SignupPage under pages/.
+
+Forgot password
+  ❌ Not Implemented — Link to /forgot-password; no matching page.
+
+Logout
+  ⚠️ Partial — SettingsPage calls useUser().logout (sets local isLoggedIn false
+     in that hook only). Does not clear useAuth / localStorage token path.
+
+JWT / session handling
+  ⚠️ Partial — AUTH_STORAGE_KEY and parsing logic exist in useAuth but the
+     localStorage read/token branch is commented out; runtime always treats the
+     user as authenticated with role "admin".
+
+Role-based access (enforced in router)
+  ❌ Not Implemented — ProtectedRoute is not used in AppRouter; no route-level
+     role gating.
+
+Single source of truth for “who is logged in”
+  ❌ Not Implemented — useAuth and useUser maintain separate concepts.
+
+
+4.2 Routing system
+------------------
+Filesystem discovery & metadata
+  ✅ Implemented — routeLoader globs:
+      /src/pages/public/**/*.tsx
+      /src/pages/protected/**/*.tsx
+      /src/pages/common/**/*.tsx
+    Derives paths from filenames (kebab-case, optional [param] segments),
+    overridden by component.routePath when set.
+
+Route typing (public / protected / common)
+  ✅ Implemented — RouteType on components (e.g. LoginPage.auth = "public",
+    LoginPage.guestOnly = true). Default type follows parent folder when auth
+    metadata absent (protected pages default to protected).
+
+Private routes
+  ✅ Implemented — PrivateRoute redirects to /login when !isAuthenticated
+    (subject to useAuth behavior).
+
+Public “guest only” routes
+  ✅ Implemented — PublicRoute redirects authenticated users (e.g. to
+    /dashboard) for routes with guestOnly.
+
+ProtectedRoute (role-aware)
+  ⚠️ Partial — Implemented as a component but ❌ not wired into AppRouter.
+
+Unauthorized page
+  ✅ Implemented — /unauthorized static route in AppRouter (used only if
+    ProtectedRoute were applied).
+
+Catch-all 404
+  ✅ Implemented — path "*" → NotFound.
+
+⚠️ Partial / defect risk — Quiz play URL consistency
+  • UI links use /quiz/{quizId} (Home QuizCard, QuizzesPage).
+  • QuizPlayPage does not set routePath; file-based path resolves to
+    /quiz-play (not /quiz/:id). useParams("id") therefore does not align with
+    advertised links unless another mechanism adds /quiz/:id (none found).
+    Net effect in a strict reading: “Play” targets may 404 or fail to load the
+    intended quiz without manual URL alignment.
+
+Duplicate static route possibility
+  ⚠️ Partial — NotFound.tsx under common may register /not-found while "*" also
+    renders NotFound; last writer wins in dedupeByPath (order: common, public,
+    protected).
+
+
+4.3 Quiz system
+---------------
+Quiz listing & detail entry
+  ✅ Implemented — Home and Quizzes pages read quizzes from src/data/quizzes.
+
+Quiz rendering (play mode)
+  ✅ Implemented — QuizPlayPage wraps QuizProvider; uses components/quiz
+    (QuizCard, instructions, lifeline dock, modals).
+
+Question types (active pipeline)
+  ✅ Implemented for multiple-choice — QuizPlayPage maps only
+    type === "multiple-choice" into engine questions; correct index derived
+    from option id vs correctAnswer.
+
+Question types (supporting UI modules)
+  ⚠️ Partial — components/quiz-questions/* implements several renderers, but
+    types/quiz.ts currently narrows QuizQuestion to multiple-choice only; running
+    `tsc -p tsconfig.app.json` reports errors in quiz-question files and
+    LifelineBar import (technical debt). These files are not evidenced as
+    imported by QuizPlayPage.
+
+Timer
+  ✅ Implemented — timerPlugin + QuizPlayPage passes timer config from
+    quiz.lifelineConfig.timer; UI shows timeout messaging when enabled.
+
+Lifelines
+  ✅ Implemented — lifelinePlugin + registry; UI hooks for Marauder’s Map style
+    effects, Ask Dumbledore modal, Legilimency poll modal, Felix Felicis retry
+    flow, Revelio, freeze time (per registry/config).
+
+Scoring logic
+  ✅ Implemented — QuizEngine increments score on correct answers; history for
+    review; timeout constant QUIZ_TIMEOUT_ANSWER_INDEX used when mapping
+    results.
+
+Sound effects
+  ✅ Implemented — quizSounds integration; per-quiz sounds config; mute toggle in
+    play UI when sounds allowed.
+
+Post-quiz
+  ✅ Implemented — ResultsPage, ReviewPage, ShareCardPage; NextQuizCard.
+
+Separate mode: This or That
+  ✅ Implemented — ThisOrThatPage with shuffle, choice selection, bar display
+    (local data).
+
+
+4.4 Dashboard / analytics
+-------------------------
+User dashboard (in-app)
+  ✅ Implemented — DashboardPage with StatCards, leaderboard list, recent quiz
+    list from mockAttempts / mockLeaderboard.
+
+Leaderboard “Friends” tab
+  ⚠️ Partial — Tab toggles UI state but the same mockLeaderboard array is
+    rendered regardless of tab (no distinct friends data source).
+
+Product analytics (GA4)
+  ⚠️ Partial — initAnalytics + usePageTracking in App.tsx.
+  • analyticsService defines trackQuizStart, trackAnswerSelected,
+    trackQuizCompleted, etc.
+  ❌ Not Implemented (wiring) — No imports of analyticsService in quiz pages or
+    engine were found outside documentation comments; funnel events are unlikely
+    to fire from gameplay.
+
+
+4.5 Social features
+-------------------
+Leaderboard display
+  ✅ Implemented — mock static leaderboard on dashboard.
+
+Ranking persistence / multiplayer / shared backend
+  ❌ Not Implemented — No API; data is mock arrays.
+
+Share card / social share controls (post-quiz)
+  ✅ Implemented in quiz-results UI (configuration-driven per quiz).
+
+
+4.6 Bookmarking / saving
+------------------------
+Saved questions & quizzes UI
+  ✅ Implemented — SavedPage lists savedQuestions and savedQuizzes.
+
+Persistence & add-from-quiz
+  ❌ Not Implemented — useBookmarks initializes from mock data only; remove
+    functions mutate React state. No localStorage/API. No “save question”
+    action located in QuizPlayPage/components path from this review.
+
+
+4.7 Settings
+------------
+User preferences UI
+  ✅ Implemented — SettingsPage toggles darkMode, soundEnabled, notifications
+    via useUser.updateSettings.
+
+Global theme integration
+  ⚠️ Partial — next-themes is a dependency and sonner uses useTheme, but App
+    does not wrap the tree in ThemeProvider; toggles are hook-local state in
+    useUser, not evidenced as driving document theme.
+
+Notifications
+  ⚠️ Partial — Toggle only; no notification service or permission API usage
+    found.
+
+
+5. NON-FUNCTIONAL REQUIREMENTS (INFERRED)
+--------------------------------------------------------------------------------
+
+5.1 Performance
+---------------
+  • Client-side bundle: Vite warns a large JS chunk (>500kB minified) — suggests
+    limited code-splitting for heavy routes.
+  • Quiz questions shuffled in engine on init — small data sets; acceptable for
+    static quizzes.
+  ✅ Lazy loading of routes: ❌ Not Implemented — eager glob imports load all
+    page modules up front.
+
+5.2 Scalability
+---------------
+  • Adding pages: ✅ file-based registration supports new files under pages/.
+  • Adding quizzes: ✅ extend data modules; no server pipeline required.
+  • Multi-tenant or server scale-out: ❌ Not applicable — no backend in repo.
+
+5.3 Security
+------------
+  • No secrets in reviewed auth flow; GA measurement ID has a default constant
+    in analyticsConfig (public-by-nature for GA).
+  • Auth security: ❌ Not Implemented — no token validation, no CSRF concerns
+    addressed (static SPA).
+  • localStorage key reserved for future token storage — currently unused logic.
+
+5.4 Accessibility & UX
+----------------------
+  • Radix-based components generally support a11y patterns; quiz UI includes
+    aria-label on mute control. Full WCAG audit: ❌ Not evidenced.
+
+5.5 Reliability / testing
+-------------------------
+  • Vitest + Playwright configs present; example test only — ❌ Not Implemented
+    as broad automated coverage of features.
+
+
+6. FOLDER STRUCTURE & ARCHITECTURE
+--------------------------------------------------------------------------------
+
+High-level map (representative):
+  src/
+    analytics/        GA init, client, events, analyticsService
+    auth/             useAuth
+    components/       UI, layout, quiz, home, user-module, thisOrThat, ui/
+    config/           branding
+    data/             quizzes, mock user data, thisOrThat questions
+    hooks/            useFelixFelicis, use-toast, user-module hooks
+    lib/              utilities (e.g. quizSounds)
+    pages/
+      common/         Home, Quizzes, Quiz play, ThisOrThat, NotFound, Index
+      public/         Login
+      protected/      user-module: Dashboard, Saved, Settings, Profile
+    quiz-engine/      Engine, context, plugins, constants
+    quiz-results/     Results, review, share, hooks, utils
+    routes/           AppRouter, routeLoader, routeMeta, guards
+    types/            quiz, user
+
+Strengths
+  • Clear modular boundaries: routing meta, quiz engine, results pipeline.
+  • Plugins pattern for timer/lifelines keeps core engine thinner.
+
+Scalability assessment
+  • Good for content growth (static TS quizzes).
+  • Limited for real user accounts until auth, API, and state layers converge.
+
+
+7. GAPS & MISSING FEATURES
+--------------------------------------------------------------------------------
+
+7.1 Critical inconsistencies
+----------------------------
+  • Quiz route path vs links: UI uses /quiz/:id; auto route for QuizPlayPage is
+    /quiz-play unless routePath is restored — high risk of broken navigation.
+  • Auth stub: Everyone treated as logged-in; Login/PublicRoute/PrivateRoute do
+    not reflect real authentication.
+  • useUser.logout vs useAuth: Logout does not align with router auth state.
+
+7.2 Missing modules / pages
+----------------------------
+  • Signup, forgot-password pages (links exist).
+  • Dedicated API/service layer for user or quiz CRUD (no src/services).
+  • Admin surfaces and enforced RBAC.
+
+7.3 Incomplete or decorative features
+---------------------------------------
+  • Dashboard friends leaderboard uses the same data as global.
+  • Profile stats/badges largely static strings vs computed from attempts.
+  • Bookmarks: no add flow, no persistence.
+  • Settings: preferences not integrated with global theme/notifications.
+  • analyticsService not wired to quiz lifecycle events.
+
+7.4 Technical debt (tooling)
+------------------------------
+  • TypeScript: `tsc -p tsconfig.app.json` fails on quiz-question components and
+    LifelineBar import mismatch — indicates drift between types and components.
+  • Root `tsc --noEmit` may not surface the same errors due to project reference
+    usage; CI should validate tsconfig.app.json explicitly.
+
+
+8. FUTURE ENHANCEMENTS (DERIVED ONLY FROM GAPS ABOVE)
+--------------------------------------------------------------------------------
+  1) Align QuizPlayPage.routePath (or rename file to match /quiz/[id] convention)
+     with all Link targets so play navigation is reliable.
+  2) Finish useAuth: restore localStorage token parsing or integrate real IdP;
+     unify logout with useUser and clear stored credentials.
+  3) Either implement Signup/Forgot-password pages or remove dead links.
+  4) Wire ProtectedRoute into AppRouter for any future admin-only routes, or
+     remove unused role stub until needed.
+  5) Persist bookmarks/settings (localStorage or API) and add “save” actions in
+     quiz UI if product requires it.
+  6) Split friends vs global leaderboard data sources when a backend exists.
+  7) Call analyticsService from quiz start/answer/complete/share handlers.
+  8) Resolve quiz-question type exports or remove unused renderers to restore
+     clean `tsc -p tsconfig.app.json`.
+  9) Optional: code-split routes (lazy + Suspense) to reduce initial bundle.
+
+================================================================================
+END OF SRS
+================================================================================
