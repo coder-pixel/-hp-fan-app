@@ -105,6 +105,17 @@ const QuizCard = ({
   // We also block interaction while the retry window is open.
   const isInputLocked = selectedAnswer !== null || felixRetryPending;
 
+  const optionCount = question?.options?.length ?? 0;
+
+  /** 3 (or any odd) options: last tile spans both columns, centered. */
+  const oddGridSpanClass = (index: number) =>
+    optionCount % 2 === 1 && index === optionCount - 1
+      ? "col-span-2 max-w-sm w-full justify-self-center"
+      : "";
+
+  const quizOptionShadow =
+    "4px 4px 0 hsl(var(--obsidian) / 0.45), 6px 10px 18px -4px hsl(var(--obsidian) / 0.55)";
+
   return (
     <div className="relative w-full max-w-xl mx-auto">
       <FloatingScore show={showScore} triggerKey={scoreKey} />
@@ -193,13 +204,14 @@ const QuizCard = ({
             {question?.question}
           </h3>
 
-          {/* Options */}
-          <div className="flex flex-col gap-3">
+          {/* Options — 2×n grid, book-tile look (theme primary / display type) */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <AnimatePresence>
               {question?.options?.map((option, index) => {
                 const isHidden = hiddenOptions?.includes(index);
                 const state = getOptionState(index);
                 const isDisabled = isInputLocked;
+                const spanClass = oddGridSpanClass(index);
 
                 if (isHidden) {
                   return (
@@ -209,16 +221,49 @@ const QuizCard = ({
                       animate={{ opacity: 0, y: -12, filter: "blur(8px)", scale: 0.95 }}
                       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
                       transition={{ duration: 0.5, ease: "easeOut" }}
-                      className="relative overflow-hidden rounded-lg border border-secondary/30 px-5 py-3.5 text-left text-sm font-medium font-body pointer-events-none"
-                      style={{ boxShadow: "0 0 20px hsla(270, 66%, 45%, 0.4)" }}
+                      className={`relative flex min-h-[5.25rem] sm:min-h-[5.75rem] items-center justify-center overflow-hidden rounded-md border border-secondary/30 px-3 py-4 text-center pointer-events-none ${spanClass}`}
+                      style={{ boxShadow: quizOptionShadow }}
                     >
-                      <span className="relative z-10 text-left text-muted-foreground/40">{option?.text}</span>
+                      <span className="relative z-10 font-display text-sm sm:text-base font-bold italic text-balance text-muted-foreground/40">
+                        {option?.text}
+                      </span>
                     </motion.div>
                   );
                 }
 
                 const isCorrect = state === "correct";
                 const isWrong = state === "wrong";
+
+                const tileBase =
+                  "relative flex min-h-[5.25rem] sm:min-h-[5.75rem] w-full items-center justify-center overflow-hidden rounded-md border px-3 py-4 text-center font-display text-sm sm:text-base font-bold italic text-balance transition-all duration-300";
+
+                const tileStateClass =
+                  state === "idle"
+                    ? "border-black/20 bg-gradient-to-br from-primary to-indigo-deep text-primary-foreground hover:border-accent/50 hover:brightness-110 cursor-pointer"
+                    : state === "lucky-idle"
+                      ? "border-amber-400/50 bg-gradient-to-br from-primary to-indigo-deep text-primary-foreground ring-1 ring-amber-400/35 hover:brightness-110 cursor-pointer"
+                      : state === "highlighted"
+                        ? "border-accent/60 bg-gradient-to-br from-primary to-secondary text-primary-foreground ring-2 ring-accent/50 cursor-pointer"
+                        : isCorrect
+                          ? "border-success/70 bg-gradient-to-br from-success/90 to-success text-success-foreground cursor-default"
+                          : isWrong
+                            ? "border-destructive/70 bg-gradient-to-br from-destructive/85 to-destructive text-destructive-foreground cursor-default"
+                            : "border-border/25 bg-primary/25 text-primary-foreground/50 opacity-45 cursor-default pointer-events-none";
+
+                const tileShadow =
+                  state === "idle" || state === "highlighted" || state === "lucky-idle"
+                    ? ({ boxShadow: quizOptionShadow } as const)
+                    : isCorrect
+                      ? ({
+                          boxShadow:
+                            "4px 4px 0 hsl(var(--success) / 0.35), 0 0 22px hsl(var(--success) / 0.35)",
+                        } as const)
+                      : isWrong
+                        ? ({
+                            boxShadow:
+                              "4px 4px 0 hsl(var(--destructive) / 0.35), 0 0 18px hsl(var(--destructive) / 0.2)",
+                          } as const)
+                        : ({ boxShadow: quizOptionShadow } as const);
 
                 return (
                   <motion.button
@@ -227,44 +272,30 @@ const QuizCard = ({
                     type="button"
                     onClick={() => handleSelect(index)}
                     disabled={isDisabled}
-                    whileHover={!isDisabled ? { scale: 1.02 } : undefined}
-                    whileTap={!isDisabled ? { scale: 0.97 } : undefined}
+                    whileHover={
+                      !isDisabled && (state === "idle" || state === "highlighted" || state === "lucky-idle")
+                        ? { y: -2, boxShadow: "6px 6px 0 hsl(var(--obsidian) / 0.5), 8px 14px 22px -4px hsl(var(--obsidian) / 0.5)" }
+                        : undefined
+                    }
+                    whileTap={!isDisabled ? { y: 1 } : undefined}
                     animate={
                       isWrong
                         ? { x: [0, -4, 4, -4, 4, 0], transition: { duration: 0.4 } }
                         : {}
                     }
-                    className={`relative overflow-hidden rounded-lg border px-5 py-3.5 text-left text-sm font-medium font-body transition-all duration-300 ${
-                      state === "idle"
-                        ? "border-border/50 bg-muted/20 hover:border-secondary/50 hover:bg-secondary/10 cursor-pointer"
-                        : state === "lucky-idle"
-                          ? "border-amber-500/30 bg-amber-950/10 hover:border-amber-400/50 hover:bg-amber-950/20 cursor-pointer"
-                          : state === "highlighted"
-                            ? "border-accent/40 bg-accent/10 ring-1 ring-accent/40 cursor-pointer"
-                            : isCorrect
-                              ? "border-green-500/60 bg-green-900/20 shadow-[0_0_20px_hsla(142,76%,36%,0.25)] cursor-default"
-                              : isWrong
-                                ? "border-destructive/60 bg-red-900/20 cursor-default"
-                                : "border-border/30 opacity-40 cursor-default pointer-events-none"
-                    }`}
-                    style={
-                      state === "idle" || state === "highlighted" || state === "lucky-idle"
-                        ? undefined
-                        : isCorrect
-                          ? { boxShadow: "0 0 20px hsla(142, 76%, 36%, 0.3)" }
-                          : undefined
-                    }
+                    className={`${tileBase} ${tileStateClass} ${spanClass}`}
+                    style={tileShadow}
                   >
                     {isCorrect && (
                       <motion.span
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
                         initial={{ x: "-100%" }}
                         animate={{ x: "100%" }}
                         transition={{ duration: 0.6, ease: "easeInOut" }}
                         aria-hidden
                       />
                     )}
-                    <span className="relative z-10 text-left">{option?.text}</span>
+                    <span className="relative z-10 px-1 leading-snug">{option?.text}</span>
                   </motion.button>
                 );
               })}
