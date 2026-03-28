@@ -116,7 +116,4 @@ const LoginPage = () => {
   );
 };
 
-LoginPage.auth = "public";
-LoginPage.guestOnly = true;
-
 export default LoginPage;

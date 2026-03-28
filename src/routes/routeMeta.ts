@@ -14,6 +14,15 @@ export type RouteMeta = {
 export type RoutableComponent<TProps = object> = ComponentType<TProps> &
   RouteMeta;
 
+/** Central route table entry (path + guard classification). */
+export type AppRoute = {
+  path: string;
+  component: RoutableComponent;
+  type: RouteType;
+  /** When true and type is `public`, authenticated users are redirected (e.g. login). */
+  guestOnly?: boolean;
+};
+
 /**
  * Attaches typed route metadata to a page component.
  * Keeps page implementation decoupled from router internals.

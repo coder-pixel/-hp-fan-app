@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, User, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { APP_LOGO_SRC, APP_NAME } from "@/config/appBranding";
 
 const navLinks = [
