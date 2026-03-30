@@ -9,6 +9,7 @@ import type { QuizSoundsConfig } from "@/types/quiz";
 import LifelineDock from "@/components/quiz/lifelines/LifelineDock";
 import type { LifelineId, LifelineState } from "@/components/quiz/lifelines/lifelineTypes";
 import type { QuizPluginsConfig } from "@/types/quiz";
+import { QUIZ_TIMEOUT_ANSWER_INDEX } from "@/quiz-engine/constants";
 
 interface TimerState {
   remaining: number;
@@ -34,6 +35,8 @@ interface QuizCardProps {
   timer?: TimerState | null;
   /** Sound config from quiz. When omitted, defaults to enabled. */
   sounds?: QuizSoundsConfig;
+  /** Reviewing an earlier question: no interaction, lifelines should be omitted by parent. */
+  readOnly?: boolean;
   /** Lifelines rendered inside the question card header area. */
   lifelineDockProps?: {
     quizLifelines: QuizPluginsConfig;
@@ -61,12 +64,14 @@ const QuizCard = ({
   timer,
   sounds,
   lifelineDockProps,
+  readOnly = false,
 }: QuizCardProps) => {
   const progress = ((currentIndex + 1) / total) * 100;
   const [scoreKey, setScoreKey] = useState(0);
   const [showScore, setShowScore] = useState(false);
 
   const handleSelect = (index: number) => {
+    if (readOnly) return;
     onSelect(index);
     const isCorrect = index === question?.correctAnswer;
     const soundsEnabled = sounds?.enabled !== false;
@@ -101,36 +106,60 @@ const QuizCard = ({
     return "disabled";
   };
 
-  // During retry, all buttons are locked (selectedAnswer !== null handles this).
-  // We also block interaction while the retry window is open.
-  const isInputLocked = selectedAnswer !== null || felixRetryPending;
+  const isInputLocked =
+    readOnly || selectedAnswer !== null || felixRetryPending;
+
+  const answersRevealed = selectedAnswer !== null && !felixRetryPending;
+  const isTimeoutAnswer = selectedAnswer === QUIZ_TIMEOUT_ANSWER_INDEX;
+  const answeredCorrectly =
+    answersRevealed &&
+    !isTimeoutAnswer &&
+    selectedAnswer === question?.correctAnswer;
+  const explanationText = question?.explanation?.trim();
+  const showExplanation = answersRevealed && !!explanationText;
+
+  const optionCount = question?.options?.length ?? 0;
+
+  /** 3 (or any odd) options: last tile spans both columns, centered. */
+  const oddGridSpanClass = (index: number) =>
+    optionCount % 2 === 1 && index === optionCount - 1
+      ? "col-span-2 max-w-sm w-full justify-self-center"
+      : "";
+
+  const quizOptionShadow =
+    "4px 4px 0 hsl(var(--obsidian) / 0.45), 6px 10px 18px -4px hsl(var(--obsidian) / 0.55)";
 
   return (
     <div className="relative w-full max-w-xl mx-auto">
       <FloatingScore show={showScore} triggerKey={scoreKey} />
       <AnimatePresence mode="wait">
         <motion.div
-          key={question?.id}
+          key={`${currentIndex}-${question?.id}`}
           initial={{ opacity: 0, x: 60 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -60 }}
           transition={{ duration: 0.35, ease: "easeInOut" }}
           className={[
             "glass-card p-7 sm:p-9 w-full",
-            felixActive && !felixRetryPending ? "felix-shimmer" : "",
-            felixRetryPending ? "felix-retry-flash" : "",
+            !readOnly && felixActive && !felixRetryPending ? "felix-shimmer" : "",
+            !readOnly && felixRetryPending ? "felix-retry-flash" : "",
           ]
             .filter(Boolean)
             .join(" ")}
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[11px] text-muted-foreground font-body tracking-wide">
                 Question {currentIndex + 1} / {total}
               </span>
+              {readOnly && (
+                <span className="rounded-md border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Review
+                </span>
+              )}
               {/* Minimal golden indicator — no verbose text */}
-              {felixActive && !felixRetryPending && (
+              {!readOnly && felixActive && !felixRetryPending && (
                 <span
                   className="inline-block h-2 w-2 rounded-full bg-amber-400"
                   title="Felix Felicis active"
@@ -193,13 +222,14 @@ const QuizCard = ({
             {question?.question}
           </h3>
 
-          {/* Options */}
-          <div className="flex flex-col gap-3">
+          {/* Options — 2×n grid, book-tile look (theme primary / display type) */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <AnimatePresence>
               {question?.options?.map((option, index) => {
                 const isHidden = hiddenOptions?.includes(index);
                 const state = getOptionState(index);
                 const isDisabled = isInputLocked;
+                const spanClass = oddGridSpanClass(index);
 
                 if (isHidden) {
                   return (
@@ -209,16 +239,49 @@ const QuizCard = ({
                       animate={{ opacity: 0, y: -12, filter: "blur(8px)", scale: 0.95 }}
                       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
                       transition={{ duration: 0.5, ease: "easeOut" }}
-                      className="relative overflow-hidden rounded-lg border border-secondary/30 px-5 py-3.5 text-left text-sm font-medium font-body pointer-events-none"
-                      style={{ boxShadow: "0 0 20px hsla(270, 66%, 45%, 0.4)" }}
+                      className={`relative flex min-h-[5.25rem] sm:min-h-[5.75rem] items-center justify-center overflow-hidden rounded-md border border-secondary/30 px-3 py-4 text-center pointer-events-none ${spanClass}`}
+                      style={{ boxShadow: quizOptionShadow }}
                     >
-                      <span className="relative z-10 text-left text-muted-foreground/40">{option?.text}</span>
+                      <span className="relative z-10 font-display text-sm sm:text-base font-bold italic text-balance text-muted-foreground/40">
+                        {option?.text}
+                      </span>
                     </motion.div>
                   );
                 }
 
                 const isCorrect = state === "correct";
                 const isWrong = state === "wrong";
+
+                const tileBase =
+                  "relative flex min-h-[5.25rem] sm:min-h-[5.75rem] w-full items-center justify-center overflow-hidden rounded-md border px-3 py-4 text-center font-display text-sm sm:text-base font-bold italic text-balance transition-all duration-300";
+
+                const tileStateClass =
+                  state === "idle"
+                    ? "border-black/20 bg-gradient-to-br from-primary to-indigo-deep text-primary-foreground hover:border-accent/50 hover:brightness-110 cursor-pointer"
+                    : state === "lucky-idle"
+                      ? "border-amber-400/50 bg-gradient-to-br from-primary to-indigo-deep text-primary-foreground ring-1 ring-amber-400/35 hover:brightness-110 cursor-pointer"
+                      : state === "highlighted"
+                        ? "border-accent/60 bg-gradient-to-br from-primary to-secondary text-primary-foreground ring-2 ring-accent/50 cursor-pointer"
+                        : isCorrect
+                          ? "border-success/70 bg-gradient-to-br from-success/90 to-success text-success-foreground cursor-default"
+                          : isWrong
+                            ? "border-destructive/70 bg-gradient-to-br from-destructive/85 to-destructive text-destructive-foreground cursor-default"
+                            : "border-border/25 bg-primary/25 text-primary-foreground/50 opacity-45 cursor-default pointer-events-none";
+
+                const tileShadow =
+                  state === "idle" || state === "highlighted" || state === "lucky-idle"
+                    ? ({ boxShadow: quizOptionShadow } as const)
+                    : isCorrect
+                      ? ({
+                        boxShadow:
+                          "4px 4px 0 hsl(var(--success) / 0.35), 0 0 22px hsl(var(--success) / 0.35)",
+                      } as const)
+                      : isWrong
+                        ? ({
+                          boxShadow:
+                            "4px 4px 0 hsl(var(--destructive) / 0.35), 0 0 18px hsl(var(--destructive) / 0.2)",
+                        } as const)
+                        : ({ boxShadow: quizOptionShadow } as const);
 
                 return (
                   <motion.button
@@ -227,49 +290,69 @@ const QuizCard = ({
                     type="button"
                     onClick={() => handleSelect(index)}
                     disabled={isDisabled}
-                    whileHover={!isDisabled ? { scale: 1.02 } : undefined}
-                    whileTap={!isDisabled ? { scale: 0.97 } : undefined}
+                    whileHover={
+                      !isDisabled && (state === "idle" || state === "highlighted" || state === "lucky-idle")
+                        ? { y: -2, boxShadow: "6px 6px 0 hsl(var(--obsidian) / 0.5), 8px 14px 22px -4px hsl(var(--obsidian) / 0.5)" }
+                        : undefined
+                    }
+                    whileTap={!isDisabled ? { y: 1 } : undefined}
                     animate={
                       isWrong
                         ? { x: [0, -4, 4, -4, 4, 0], transition: { duration: 0.4 } }
                         : {}
                     }
-                    className={`relative overflow-hidden rounded-lg border px-5 py-3.5 text-left text-sm font-medium font-body transition-all duration-300 ${
-                      state === "idle"
-                        ? "border-border/50 bg-muted/20 hover:border-secondary/50 hover:bg-secondary/10 cursor-pointer"
-                        : state === "lucky-idle"
-                          ? "border-amber-500/30 bg-amber-950/10 hover:border-amber-400/50 hover:bg-amber-950/20 cursor-pointer"
-                          : state === "highlighted"
-                            ? "border-accent/40 bg-accent/10 ring-1 ring-accent/40 cursor-pointer"
-                            : isCorrect
-                              ? "border-green-500/60 bg-green-900/20 shadow-[0_0_20px_hsla(142,76%,36%,0.25)] cursor-default"
-                              : isWrong
-                                ? "border-destructive/60 bg-red-900/20 cursor-default"
-                                : "border-border/30 opacity-40 cursor-default pointer-events-none"
-                    }`}
-                    style={
-                      state === "idle" || state === "highlighted" || state === "lucky-idle"
-                        ? undefined
-                        : isCorrect
-                          ? { boxShadow: "0 0 20px hsla(142, 76%, 36%, 0.3)" }
-                          : undefined
-                    }
+                    className={`${tileBase} ${tileStateClass} ${spanClass}`}
+                    style={tileShadow}
                   >
                     {isCorrect && (
                       <motion.span
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
                         initial={{ x: "-100%" }}
                         animate={{ x: "100%" }}
                         transition={{ duration: 0.6, ease: "easeInOut" }}
                         aria-hidden
                       />
                     )}
-                    <span className="relative z-10 text-left">{option?.text}</span>
+                    <span className="relative z-10 px-1 leading-snug">{option?.text}</span>
                   </motion.button>
                 );
               })}
             </AnimatePresence>
           </div>
+
+          {isTimeoutAnswer && answersRevealed && (
+            <p className="mt-4 text-center font-body text-sm font-medium text-amber-200/90">
+              Time&apos;s up — this counts as a wrong answer.
+            </p>
+          )}
+
+          <AnimatePresence>
+            {showExplanation && (
+              <motion.div
+                key="explanation"
+                role="note"
+                initial={{ opacity: 0, y: 28, scale: 0.94 }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  transition: { type: "spring", stiffness: 420, damping: 22, mass: 0.85 },
+                }}
+                exit={{ opacity: 0, y: 12, transition: { duration: 0.2 } }}
+                className={[
+                  "mt-5 rounded-lg border px-4 py-3 text-left font-body text-sm leading-relaxed",
+                  answeredCorrectly
+                    ? "border-success/50 bg-success/10 text-foreground"
+                    : "border-destructive/45 bg-destructive/10 text-foreground",
+                ].join(" ")}
+              >
+                <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {answeredCorrectly ? "Nice!" : "Explanation"}
+                </span>
+                {explanationText}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </AnimatePresence>
     </div>

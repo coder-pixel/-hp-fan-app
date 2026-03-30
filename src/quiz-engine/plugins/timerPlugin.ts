@@ -3,8 +3,6 @@ import { playTimerTickSubtle, playTimerPulse, playTimeout } from "@/lib/quizSoun
 import { QUIZ_TIMEOUT_ANSWER_INDEX } from "../constants";
 
 const TIMEOUT_SENTINEL_ANSWER_INDEX = QUIZ_TIMEOUT_ANSWER_INDEX;
-/** Delay (ms) after timeout before auto-advancing to next question; warning stays visible for this duration. */
-const TIMEOUT_ADVANCE_DELAY_MS = 1200;
 const FREEZE_DURATION_MS = 5000;
 
 function clampSeconds(seconds: number) {
@@ -25,7 +23,7 @@ function getSecondsPerQuestion(api: PluginAPI) {
  * Timer plugin
  * - Starts a per-question countdown when a question begins
  * - Stops countdown when an answer is selected or question ends
- * - On timeout, answers with a sentinel incorrect index and advances
+ * - On timeout, answers with a sentinel incorrect index (player taps Next to continue)
  * - Listens to "freezeTime" lifeline (once per quiz via lifelinePlugin usage tracking)
  */
 export const timerPlugin: QuizPlugin = (() => {
@@ -138,11 +136,7 @@ export const timerPlugin: QuizPlugin = (() => {
               timer: { ...s.timer, remaining: 0, isRunning: false, isFrozen: false },
             }));
 
-            // Auto-answer incorrect, then advance after fixed delay (warning stays visible until then).
             api.actions.answerQuestion(TIMEOUT_SENTINEL_ANSWER_INDEX);
-            window.setTimeout(() => {
-              api.actions.advanceQuestion();
-            }, TIMEOUT_ADVANCE_DELAY_MS);
           }
         }, 200);
       };
@@ -268,7 +262,6 @@ export const timerPlugin: QuizPlugin = (() => {
               timer: { ...prev2.timer, remaining: 0, isRunning: false, isFrozen: false },
             }));
             api.actions.answerQuestion(TIMEOUT_SENTINEL_ANSWER_INDEX);
-            window.setTimeout(() => api.actions.advanceQuestion(), TIMEOUT_ADVANCE_DELAY_MS);
           }
         }, 200);
       });

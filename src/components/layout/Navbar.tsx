@@ -9,6 +9,8 @@ const navLinks = [
   // { label: "Quiz", href: "/quiz" },
   // { label: "This or That", href: "/this-or-that" },
   { label: "Quizzes", href: "/quizzes" },
+  // { label: "Dashboard", href: "/dashboard" },
+  // { label: "Saved", href: "/saved" },
   // { label: "Polls", href: "/#polls" },
 ];
 
@@ -61,6 +63,11 @@ const Navbar = () => {
               </Link>
             )
           )}
+
+          {/* <Link to="/profile" className="w-8 h-8 rounded-full bg-secondary/40 flex items-center justify-center hover:bg-accent/20 transition-colors">
+            <User className="w-4 h-4 text-foreground/70" />
+          </Link> */}
+
         </div>
 
         {/* Mobile toggle */}

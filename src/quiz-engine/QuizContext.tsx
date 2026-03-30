@@ -42,17 +42,14 @@ export const QuizProvider: React.FC<{ children: React.ReactNode; config?: QuizCo
     startQuiz: () => engineRef.current?.startQuiz(),
     answerQuestion: (idx: number) => {
       engineRef.current?.answerQuestion(idx);
-
-      // After the call, check whether the engine entered felix-retry mode.
-      // If so, schedule retryQuestion() after the dramatic pause; otherwise advance normally.
       const afterState = engineRef.current?.state;
       if (afterState?.felixRetryPending) {
         setTimeout(() => engineRef.current?.retryQuestion(), FELIX_RETRY_DELAY_MS);
-      } else {
-        setTimeout(() => engineRef.current?.advanceQuestion(), 1200);
       }
     },
     advanceQuestion: () => engineRef.current?.advanceQuestion(),
+    goToPreviousQuestion: () => engineRef.current?.goToPreviousQuestion(),
+    goToNextQuestion: () => engineRef.current?.goToNextQuestion(),
     retryQuestion: () => engineRef.current?.retryQuestion(),
     useLifeline: (id) => engineRef.current?.useLifeline(id),
     dismissEffect: () => engineRef.current?.dismissEffect(),
