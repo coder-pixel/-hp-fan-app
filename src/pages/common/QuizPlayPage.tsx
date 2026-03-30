@@ -8,7 +8,7 @@ import {
 import { QUIZ_TIMEOUT_ANSWER_INDEX } from "@/quiz-engine/constants";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Volume2, VolumeX } from "lucide-react";
+import { ChevronLeft, ChevronRight, Volume2, VolumeX } from "lucide-react";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -57,6 +57,7 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
     timer,
     questions,
     questionIndex,
+    displayQuestionIndex,
     score,
     answerHistory,
     streak,
@@ -69,7 +70,30 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
     mapHighlight,
     hiddenOptions,
   } = state;
-  const currentQuestion = questions?.[questionIndex];
+  const isReviewingPast = displayQuestionIndex < questionIndex;
+  const historyForDisplay = answerHistory.find(
+    (h) => h.questionIndex === displayQuestionIndex,
+  );
+  const displayedSelectedAnswer = isReviewingPast
+    ? (historyForDisplay?.userOptionIndex ?? null)
+    : selectedAnswer;
+
+  const currentQuestion = questions?.[displayQuestionIndex];
+
+  const totalQuestions = questions?.length ?? 0;
+  const canGoPrevious = displayQuestionIndex > 0;
+  const canGoNext =
+    !felixRetryPending &&
+    (displayQuestionIndex < questionIndex ||
+      (displayQuestionIndex === questionIndex && selectedAnswer !== null));
+  const nextButtonLabel =
+    displayQuestionIndex < questionIndex
+      ? "Next"
+      : displayQuestionIndex === totalQuestions - 1 &&
+          questionIndex === displayQuestionIndex &&
+          selectedAnswer !== null
+        ? "Finish"
+        : "Next";
   const soundsAllowed = config?.sounds?.enabled !== false;
   const [audioOn, setAudioOn] = useState<boolean>(soundsAllowed);
   const [askDumbledoreModalOpen, setAskDumbledoreModalOpen] = useState(false);
@@ -81,7 +105,13 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
 
   // Felix Felicis microcopy — handles all three message phases.
   const { microcopy: felixMicrocopy } = useFelixFelicis(
-    { felixActive, felixRetryPending, felixUsed, selectedAnswer, questionIndex },
+    {
+      felixActive: isReviewingPast ? false : felixActive,
+      felixRetryPending: isReviewingPast ? false : felixRetryPending,
+      felixUsed: isReviewingPast ? false : felixUsed,
+      selectedAnswer: isReviewingPast ? null : selectedAnswer,
+      questionIndex: isReviewingPast ? displayQuestionIndex : questionIndex,
+    },
     currentQuestion ?? null,
   );
 
@@ -99,29 +129,29 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
 
   useEffect(() => {
     if (activeEffect?.type === "askDumbledore" && activeEffect?.hint) {
-      askDumbledoreQuestionIndexRef.current = questionIndex;
+      askDumbledoreQuestionIndexRef.current = displayQuestionIndex;
       setAskDumbledoreModalOpen(true);
     }
-  }, [activeEffect?.type, activeEffect?.hint, questionIndex]);
+  }, [activeEffect?.type, activeEffect?.hint, displayQuestionIndex]);
 
   useEffect(() => {
     if (activeEffect?.type === "legilimency" && activeEffect?.pollResults) {
-      legilimencyQuestionIndexRef.current = questionIndex;
+      legilimencyQuestionIndexRef.current = displayQuestionIndex;
       setPollModalOpen(true);
     }
-  }, [activeEffect?.type, activeEffect?.pollResults, questionIndex]);
+  }, [activeEffect?.type, activeEffect?.pollResults, displayQuestionIndex]);
 
   useEffect(() => {
     if (status !== "finished") setFinishedPanel("results");
   }, [status]);
 
   useEffect(() => {
-    // Moving to another question: reset all per-question modal states.
+    // Changing the viewed question: reset all per-question modal states.
     setAskDumbledoreModalOpen(false);
     askDumbledoreQuestionIndexRef.current = null;
     setPollModalOpen(false);
     legilimencyQuestionIndexRef.current = null;
-  }, [questionIndex]);
+  }, [displayQuestionIndex]);
 
   const resultPayload = useMemo(() => {
     const total = questions?.length ?? 0;
@@ -222,13 +252,15 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
               askDumbledoreModalOpen &&
               activeEffect?.type === "askDumbledore" &&
               !!activeEffect?.hint &&
-              askDumbledoreQuestionIndexRef.current === questionIndex
+              askDumbledoreQuestionIndexRef.current === displayQuestionIndex
             }
             hint={activeEffect?.type === "askDumbledore" ? activeEffect?.hint ?? "" : ""}
             onClose={() => setAskDumbledoreModalOpen(false)}
           />
 
-          {config?.timer?.enabled && timer?.didTimeout && (
+          {config?.timer?.enabled &&
+            timer?.didTimeout &&
+            displayQuestionIndex === questionIndex && (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -237,10 +269,10 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
               style={{ boxShadow: "0 0 20px hsla(38, 92%, 50%, 0.15)" }}
             >
               <p className="text-sm font-semibold font-body text-amber-200">
-                ⏱️ Time's up!
+                ⏱️ Time&apos;s up!
               </p>
               <p className="mt-1 text-xs font-body text-amber-200/80">
-                Moving to next question...
+                Your answer was marked wrong. Use Next when you&apos;re ready to continue.
               </p>
             </motion.div>
           )}
@@ -249,69 +281,102 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
             <FelixMicrocopy message={felixMicrocopy} />
             <QuizCard
               question={currentQuestion}
-              currentIndex={questionIndex}
+              currentIndex={displayQuestionIndex}
               total={questions?.length}
               streak={streak}
-              selectedAnswer={selectedAnswer}
+              selectedAnswer={displayedSelectedAnswer}
+              readOnly={isReviewingPast}
               onSelect={actions?.answerQuestion}
-              mapHighlight={mapHighlight}
-              felixActive={felixActive}
-              felixRetryPending={felixRetryPending}
-              felixUsed={felixUsed}
-              hiddenOptions={hiddenOptions}
-              timer={config?.timer?.enabled ? timer : null}
+              mapHighlight={isReviewingPast ? null : mapHighlight}
+              felixActive={isReviewingPast ? false : felixActive}
+              felixRetryPending={isReviewingPast ? false : felixRetryPending}
+              felixUsed={isReviewingPast ? false : felixUsed}
+              hiddenOptions={isReviewingPast ? [] : hiddenOptions}
+              timer={
+                config?.timer?.enabled && !isReviewingPast && displayQuestionIndex === questionIndex
+                  ? timer
+                  : null
+              }
               sounds={config?.sounds}
-              lifelineDockProps={{
-                quizLifelines: quiz?.lifelineConfig,
-                lifelineStates,
-                onActivate: (id) => {
-                  if (
-                    id === "askDumbledore" &&
-                    activeEffect?.type === "askDumbledore" &&
-                    !!activeEffect?.hint &&
-                    askDumbledoreQuestionIndexRef.current === questionIndex
-                  ) {
-                    setAskDumbledoreModalOpen(true);
-                    return;
-                  }
-                  if (
-                    id === "legilimency" &&
-                    activeEffect?.type === "legilimency" &&
-                    !!activeEffect?.pollResults &&
-                    legilimencyQuestionIndexRef.current === questionIndex
-                  ) {
-                    setPollModalOpen(true);
-                    return;
-                  }
+              lifelineDockProps={
+                !isReviewingPast
+                  ? {
+                      quizLifelines: quiz?.lifelineConfig,
+                      lifelineStates,
+                      onActivate: (id) => {
+                        if (
+                          id === "askDumbledore" &&
+                          activeEffect?.type === "askDumbledore" &&
+                          !!activeEffect?.hint &&
+                          askDumbledoreQuestionIndexRef.current === displayQuestionIndex
+                        ) {
+                          setAskDumbledoreModalOpen(true);
+                          return;
+                        }
+                        if (
+                          id === "legilimency" &&
+                          activeEffect?.type === "legilimency" &&
+                          !!activeEffect?.pollResults &&
+                          legilimencyQuestionIndexRef.current === displayQuestionIndex
+                        ) {
+                          setPollModalOpen(true);
+                          return;
+                        }
 
-                  if (id === "felixFelicis") {
-                    toast({
-                      title: "Felix Felicis",
-                      description: "A sip of liquid luck. If you falter, you get one more try this round.",
-                    });
-                  }
-                  actions?.useLifeline(id);
-                },
-                disabled: selectedAnswer !== null || felixRetryPending,
-                activeId: activeEffect?.type ?? null,
-                allowUsedActivation: (id) => {
-                  if (
-                    id === "askDumbledore" &&
-                    activeEffect?.type === "askDumbledore" &&
-                    !!activeEffect?.hint &&
-                    askDumbledoreQuestionIndexRef.current === questionIndex
-                  ) return true;
-                  if (
-                    id === "legilimency" &&
-                    activeEffect?.type === "legilimency" &&
-                    !!activeEffect?.pollResults &&
-                    legilimencyQuestionIndexRef.current === questionIndex
-                  ) return true;
-                  return false;
-                },
-                label: "Lifelines",
-              }}
+                        if (id === "felixFelicis") {
+                          toast({
+                            title: "Felix Felicis",
+                            description: "A sip of liquid luck. If you falter, you get one more try this round.",
+                          });
+                        }
+                        actions?.useLifeline(id);
+                      },
+                      disabled: selectedAnswer !== null || felixRetryPending,
+                      activeId: activeEffect?.type ?? null,
+                      allowUsedActivation: (id) => {
+                        if (
+                          id === "askDumbledore" &&
+                          activeEffect?.type === "askDumbledore" &&
+                          !!activeEffect?.hint &&
+                          askDumbledoreQuestionIndexRef.current === displayQuestionIndex
+                        )
+                          return true;
+                        if (
+                          id === "legilimency" &&
+                          activeEffect?.type === "legilimency" &&
+                          !!activeEffect?.pollResults &&
+                          legilimencyQuestionIndexRef.current === displayQuestionIndex
+                        )
+                          return true;
+                        return false;
+                      },
+                      label: "Lifelines",
+                    }
+                  : undefined
+              }
             />
+          </div>
+
+          <div className="relative z-10 mx-auto mt-8 flex max-w-xl items-center justify-between gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="min-w-[8.5rem] font-body"
+              disabled={!canGoPrevious}
+              onClick={() => actions?.goToPreviousQuestion()}
+            >
+              <ChevronLeft className="mr-1 h-4 w-4" aria-hidden />
+              Previous
+            </Button>
+            <Button
+              type="button"
+              className="min-w-[8.5rem] font-body"
+              disabled={!canGoNext}
+              onClick={() => actions?.goToNextQuestion()}
+            >
+              {nextButtonLabel}
+              <ChevronRight className="ml-1 h-4 w-4" aria-hidden />
+            </Button>
           </div>
 
           <PollModal
@@ -319,7 +384,7 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
               pollModalOpen &&
               activeEffect?.type === "legilimency" &&
               !!activeEffect?.pollResults &&
-              legilimencyQuestionIndexRef.current === questionIndex
+              legilimencyQuestionIndexRef.current === displayQuestionIndex
             }
             onClose={() => setPollModalOpen(false)}
             pollResults={activeEffect?.type === "legilimency" && activeEffect?.pollResults ? activeEffect.pollResults : []}

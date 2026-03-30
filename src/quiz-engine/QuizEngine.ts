@@ -9,6 +9,7 @@ import type {
 import type { LifelineId } from "@/components/quiz/lifelines/lifelineTypes";
 import { lifelineRegistry } from "@/components/quiz/lifelines/lifelineRegistry";
 import { QuizEventBus } from "./engineEvents";
+import { QUIZ_TIMEOUT_ANSWER_INDEX } from "./constants";
 
 const shuffle = <T>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
 
@@ -49,6 +50,7 @@ export function createInitialState(
     },
     questions: shuffle(sourceQuestions),
     questionIndex: 0,
+    displayQuestionIndex: 0,
     score: 0,
     streak: 0,
     selectedAnswer: null,
@@ -131,6 +133,22 @@ export class QuizEngine {
     const question = this.state.questions?.[this.state.questionIndex];
     const isActuallyCorrect = optionIndex === question?.correctAnswer;
 
+    // Timer timeout: always a wrong answer, never Felix retry.
+    if (optionIndex === QUIZ_TIMEOUT_ANSWER_INDEX) {
+      this.setState((s) => ({
+        ...s,
+        selectedAnswer: optionIndex,
+        activeEffect: null,
+        mapHighlight: null,
+      }));
+      this.bus.emit("onAnswerSelected", {
+        index: optionIndex,
+        correct: false,
+        question,
+      });
+      return;
+    }
+
     // Felix retry path: wrong answer while retry hasn't been consumed yet.
     // Show the wrong highlight briefly; the context schedules retryQuestion() after the delay.
     if (
@@ -204,6 +222,7 @@ export class QuizEngine {
         ...s,
         answerHistory: [...s.answerHistory, historyEntry],
         status: "finished",
+        displayQuestionIndex: endedIndex,
       }));
       this.bus.emit("onQuestionEnd", { index: endedIndex });
       this.bus.emit("onQuizFinish", {
@@ -217,6 +236,7 @@ export class QuizEngine {
       ...s,
       answerHistory: [...s.answerHistory, historyEntry],
       questionIndex: nextIndex,
+      displayQuestionIndex: nextIndex,
       selectedAnswer: null,
       felixUsed: false,
       hiddenOptions: [],
@@ -226,6 +246,34 @@ export class QuizEngine {
       index: nextIndex,
       question: this.state.questions?.[nextIndex],
     });
+  }
+
+  goToPreviousQuestion() {
+    if (this.state.status !== "playing") return;
+    if (this.state.displayQuestionIndex <= 0) return;
+    this.setState((s) => ({
+      ...s,
+      displayQuestionIndex: s.displayQuestionIndex - 1,
+    }));
+  }
+
+  goToNextQuestion() {
+    if (this.state.status !== "playing") return;
+    if (this.state.felixRetryPending) return;
+
+    const { displayQuestionIndex, questionIndex, selectedAnswer } = this.state;
+
+    if (displayQuestionIndex < questionIndex) {
+      this.setState((s) => ({
+        ...s,
+        displayQuestionIndex: s.displayQuestionIndex + 1,
+      }));
+      return;
+    }
+
+    if (displayQuestionIndex === questionIndex && selectedAnswer !== null) {
+      this.advanceQuestion();
+    }
   }
 
   useLifeline(id: LifelineId) {

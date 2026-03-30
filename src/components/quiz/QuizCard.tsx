@@ -9,6 +9,7 @@ import type { QuizSoundsConfig } from "@/types/quiz";
 import LifelineDock from "@/components/quiz/lifelines/LifelineDock";
 import type { LifelineId, LifelineState } from "@/components/quiz/lifelines/lifelineTypes";
 import type { QuizPluginsConfig } from "@/types/quiz";
+import { QUIZ_TIMEOUT_ANSWER_INDEX } from "@/quiz-engine/constants";
 
 interface TimerState {
   remaining: number;
@@ -34,6 +35,8 @@ interface QuizCardProps {
   timer?: TimerState | null;
   /** Sound config from quiz. When omitted, defaults to enabled. */
   sounds?: QuizSoundsConfig;
+  /** Reviewing an earlier question: no interaction, lifelines should be omitted by parent. */
+  readOnly?: boolean;
   /** Lifelines rendered inside the question card header area. */
   lifelineDockProps?: {
     quizLifelines: QuizPluginsConfig;
@@ -61,12 +64,14 @@ const QuizCard = ({
   timer,
   sounds,
   lifelineDockProps,
+  readOnly = false,
 }: QuizCardProps) => {
   const progress = ((currentIndex + 1) / total) * 100;
   const [scoreKey, setScoreKey] = useState(0);
   const [showScore, setShowScore] = useState(false);
 
   const handleSelect = (index: number) => {
+    if (readOnly) return;
     onSelect(index);
     const isCorrect = index === question?.correctAnswer;
     const soundsEnabled = sounds?.enabled !== false;
@@ -101,9 +106,17 @@ const QuizCard = ({
     return "disabled";
   };
 
-  // During retry, all buttons are locked (selectedAnswer !== null handles this).
-  // We also block interaction while the retry window is open.
-  const isInputLocked = selectedAnswer !== null || felixRetryPending;
+  const isInputLocked =
+    readOnly || selectedAnswer !== null || felixRetryPending;
+
+  const answersRevealed = selectedAnswer !== null && !felixRetryPending;
+  const isTimeoutAnswer = selectedAnswer === QUIZ_TIMEOUT_ANSWER_INDEX;
+  const answeredCorrectly =
+    answersRevealed &&
+    !isTimeoutAnswer &&
+    selectedAnswer === question?.correctAnswer;
+  const explanationText = question?.explanation?.trim();
+  const showExplanation = answersRevealed && !!explanationText;
 
   const optionCount = question?.options?.length ?? 0;
 
@@ -121,27 +134,32 @@ const QuizCard = ({
       <FloatingScore show={showScore} triggerKey={scoreKey} />
       <AnimatePresence mode="wait">
         <motion.div
-          key={question?.id}
+          key={`${currentIndex}-${question?.id}`}
           initial={{ opacity: 0, x: 60 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -60 }}
           transition={{ duration: 0.35, ease: "easeInOut" }}
           className={[
             "glass-card p-7 sm:p-9 w-full",
-            felixActive && !felixRetryPending ? "felix-shimmer" : "",
-            felixRetryPending ? "felix-retry-flash" : "",
+            !readOnly && felixActive && !felixRetryPending ? "felix-shimmer" : "",
+            !readOnly && felixRetryPending ? "felix-retry-flash" : "",
           ]
             .filter(Boolean)
             .join(" ")}
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[11px] text-muted-foreground font-body tracking-wide">
                 Question {currentIndex + 1} / {total}
               </span>
+              {readOnly && (
+                <span className="rounded-md border border-border/60 bg-muted/30 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Review
+                </span>
+              )}
               {/* Minimal golden indicator — no verbose text */}
-              {felixActive && !felixRetryPending && (
+              {!readOnly && felixActive && !felixRetryPending && (
                 <span
                   className="inline-block h-2 w-2 rounded-full bg-amber-400"
                   title="Felix Felicis active"
@@ -255,14 +273,14 @@ const QuizCard = ({
                     ? ({ boxShadow: quizOptionShadow } as const)
                     : isCorrect
                       ? ({
-                          boxShadow:
-                            "4px 4px 0 hsl(var(--success) / 0.35), 0 0 22px hsl(var(--success) / 0.35)",
-                        } as const)
+                        boxShadow:
+                          "4px 4px 0 hsl(var(--success) / 0.35), 0 0 22px hsl(var(--success) / 0.35)",
+                      } as const)
                       : isWrong
                         ? ({
-                            boxShadow:
-                              "4px 4px 0 hsl(var(--destructive) / 0.35), 0 0 18px hsl(var(--destructive) / 0.2)",
-                          } as const)
+                          boxShadow:
+                            "4px 4px 0 hsl(var(--destructive) / 0.35), 0 0 18px hsl(var(--destructive) / 0.2)",
+                        } as const)
                         : ({ boxShadow: quizOptionShadow } as const);
 
                 return (
@@ -301,6 +319,40 @@ const QuizCard = ({
               })}
             </AnimatePresence>
           </div>
+
+          {isTimeoutAnswer && answersRevealed && (
+            <p className="mt-4 text-center font-body text-sm font-medium text-amber-200/90">
+              Time&apos;s up — this counts as a wrong answer.
+            </p>
+          )}
+
+          <AnimatePresence>
+            {showExplanation && (
+              <motion.div
+                key="explanation"
+                role="note"
+                initial={{ opacity: 0, y: 28, scale: 0.94 }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  transition: { type: "spring", stiffness: 420, damping: 22, mass: 0.85 },
+                }}
+                exit={{ opacity: 0, y: 12, transition: { duration: 0.2 } }}
+                className={[
+                  "mt-5 rounded-lg border px-4 py-3 text-left font-body text-sm leading-relaxed",
+                  answeredCorrectly
+                    ? "border-success/50 bg-success/10 text-foreground"
+                    : "border-destructive/45 bg-destructive/10 text-foreground",
+                ].join(" ")}
+              >
+                <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {answeredCorrectly ? "Nice!" : "Explanation"}
+                </span>
+                {explanationText}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </AnimatePresence>
     </div>
