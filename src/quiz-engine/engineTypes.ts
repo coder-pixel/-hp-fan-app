@@ -52,7 +52,10 @@ export interface QuizState {
   status: QuizStatus;
   config: QuizConfig;
   questions: QuizQuestion[];
+  /** Frontier index: timer, lifelines, and new answers apply here. */
   questionIndex: number;
+  /** Which question the player is viewing (may trail questionIndex while reviewing earlier items). */
+  displayQuestionIndex: number;
   score: number;
   streak: number;
   selectedAnswer: number | null;
@@ -74,6 +77,8 @@ export interface QuizActions {
   startQuiz: () => void;
   answerQuestion: (optionIndex: number) => void;
   advanceQuestion: () => void;
+  goToPreviousQuestion: () => void;
+  goToNextQuestion: () => void;
   /** Called ~800ms after a felix-retry wrong answer to reset the question. */
   retryQuestion: () => void;
   useLifeline: (id: LifelineId) => void;

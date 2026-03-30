@@ -1,11 +1,5 @@
-import { hpTrivia } from "./hp-trivia";
-import { hermioneTrivia } from "./hermione-trivia";
-import { truePotterheadsQuiz } from "./true-potterheads-quiz";
+import { HpGuessMoment1 } from "./hp-trivia";
 import { hpShortQuiz } from "./hp-short-quiz";
+import { hpMediumHard1 } from "./hp-medium-hard-1";
 
-export const quizzes = [
-  hpTrivia,
-  hermioneTrivia,
-  truePotterheadsQuiz,
-  hpShortQuiz,
-];
+export const quizzes = [HpGuessMoment1, hpMediumHard1, hpShortQuiz];
