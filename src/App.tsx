@@ -5,6 +5,7 @@ import { initAnalytics, usePageTracking } from "@/analytics";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import ScrollToTop from "@/components/common/ScrollToTop";
 import AppRouter from "@/routes/AppRouter";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AnalyticsBootstrap />
+        <ScrollToTop />
         <AppRouter />
       </BrowserRouter>
     </TooltipProvider>

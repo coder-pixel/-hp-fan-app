@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, type ReactNode } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import type { QuizQuestion } from "@/types/quiz";
+import { cn } from "@/lib/utils";
 import QuestionMedia from "./QuestionMedia";
 import FloatingScore from "./FloatingScore";
 import TimerBadge from "./TimerBadge";
@@ -37,6 +38,8 @@ interface QuizCardProps {
   sounds?: QuizSoundsConfig;
   /** Reviewing an earlier question: no interaction, lifelines should be omitted by parent. */
   readOnly?: boolean;
+  /** Optional slot rendered in the header top-right (e.g. sound toggle). */
+  headerRightSlot?: ReactNode;
   /** Lifelines rendered inside the question card header area. */
   lifelineDockProps?: {
     quizLifelines: QuizPluginsConfig;
@@ -65,10 +68,18 @@ const QuizCard = ({
   sounds,
   lifelineDockProps,
   readOnly = false,
+  headerRightSlot,
 }: QuizCardProps) => {
   const progress = ((currentIndex + 1) / total) * 100;
   const [scoreKey, setScoreKey] = useState(0);
   const [showScore, setShowScore] = useState(false);
+  /** After reveal: swap between answers grid vs explanation in the same slot. */
+  const [postAnswerFace, setPostAnswerFace] = useState<"answers" | "explanation">("answers");
+  const prefersReducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    setPostAnswerFace("answers");
+  }, [currentIndex, question?.id]);
 
   const handleSelect = (index: number) => {
     if (readOnly) return;
@@ -118,6 +129,20 @@ const QuizCard = ({
   const explanationText = question?.explanation?.trim();
   const showExplanation = answersRevealed && !!explanationText;
 
+  /** Show answers first, then flip to explanation (so the flip animation reveals the explanation). */
+  useEffect(() => {
+    if (!showExplanation) return;
+    if (prefersReducedMotion) {
+      setPostAnswerFace("explanation");
+      return;
+    }
+    setPostAnswerFace("answers");
+    const t = window.setTimeout(() => {
+      setPostAnswerFace("explanation");
+    }, 720);
+    return () => window.clearTimeout(t);
+  }, [showExplanation, prefersReducedMotion, currentIndex, question?.id]);
+
   const optionCount = question?.options?.length ?? 0;
 
   /** 3 (or any odd) options: last tile spans both columns, centered. */
@@ -129,8 +154,109 @@ const QuizCard = ({
   const quizOptionShadow =
     "4px 4px 0 hsl(var(--obsidian) / 0.45), 6px 10px 18px -4px hsl(var(--obsidian) / 0.55)";
 
+  const renderOptionsGrid = () => (
+    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+      <AnimatePresence>
+        {question?.options?.map((option, index) => {
+          const isHidden = hiddenOptions?.includes(index);
+          const state = getOptionState(index);
+          const isDisabled = isInputLocked;
+          const spanClass = oddGridSpanClass(index);
+
+          if (isHidden) {
+            return (
+              <div
+                key={index}
+                className={cn(
+                  "relative flex min-h-[5.25rem] w-full flex-col items-center justify-center gap-1 overflow-hidden rounded-md border-2 border-dashed border-muted-foreground/30 bg-muted/20 px-2 py-3 text-center pointer-events-none sm:min-h-[5.75rem] sm:px-3 sm:py-4",
+                  spanClass,
+                )}
+                aria-hidden
+              >
+                <span className="text-[9px] font-body font-semibold uppercase tracking-[0.18em] text-muted-foreground/55">
+                  Removed
+                </span>
+                <span className="line-clamp-2 max-w-[95%] font-display text-[11px] font-medium italic leading-snug text-muted-foreground/35 line-through decoration-muted-foreground/30 sm:text-xs">
+                  {option?.text}
+                </span>
+              </div>
+            );
+          }
+
+          const isCorrect = state === "correct";
+          const isWrong = state === "wrong";
+
+          const tileBase =
+            "relative flex min-h-[5.25rem] sm:min-h-[5.75rem] w-full items-center justify-center overflow-hidden rounded-md border px-3 py-4 text-center font-display text-sm sm:text-base font-bold italic text-balance transition-all duration-300";
+
+          const tileStateClass =
+            state === "idle"
+              ? "border-black/20 bg-gradient-to-br from-primary to-indigo-deep text-primary-foreground hover:border-accent/50 hover:brightness-110 cursor-pointer"
+              : state === "lucky-idle"
+                ? "border-amber-400/50 bg-gradient-to-br from-primary to-indigo-deep text-primary-foreground ring-1 ring-amber-400/35 hover:brightness-110 cursor-pointer"
+                : state === "highlighted"
+                  ? "border-accent/60 bg-gradient-to-br from-primary to-secondary text-primary-foreground ring-2 ring-accent/50 cursor-pointer"
+                  : isCorrect
+                    ? "border-success/70 bg-gradient-to-br from-success/90 to-success text-success-foreground cursor-default"
+                    : isWrong
+                      ? "border-destructive/70 bg-gradient-to-br from-destructive/85 to-destructive text-destructive-foreground cursor-default"
+                      : "border-border/25 bg-primary/25 text-primary-foreground/50 opacity-45 cursor-default pointer-events-none";
+
+          const tileShadow =
+            state === "idle" || state === "highlighted" || state === "lucky-idle"
+              ? ({ boxShadow: quizOptionShadow } as const)
+              : isCorrect
+                ? ({
+                    boxShadow:
+                      "4px 4px 0 hsl(var(--success) / 0.35), 0 0 22px hsl(var(--success) / 0.35)",
+                  } as const)
+                : isWrong
+                  ? ({
+                      boxShadow:
+                        "4px 4px 0 hsl(var(--destructive) / 0.35), 0 0 18px hsl(var(--destructive) / 0.2)",
+                    } as const)
+                  : ({ boxShadow: quizOptionShadow } as const);
+
+          return (
+            <motion.button
+              key={index}
+              layout
+              type="button"
+              onClick={() => handleSelect(index)}
+              disabled={isDisabled}
+              whileHover={
+                !isDisabled && (state === "idle" || state === "highlighted" || state === "lucky-idle")
+                  ? { y: -2, boxShadow: "6px 6px 0 hsl(var(--obsidian) / 0.5), 8px 14px 22px -4px hsl(var(--obsidian) / 0.5)" }
+                  : undefined
+              }
+              whileTap={!isDisabled ? { y: 1 } : undefined}
+              animate={
+                isWrong
+                  ? { x: [0, -4, 4, -4, 4, 0], transition: { duration: 0.4 } }
+                  : {}
+              }
+              className={`${tileBase} ${tileStateClass} ${spanClass}`}
+              style={tileShadow}
+            >
+              {isCorrect && (
+                <motion.span
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
+                  initial={{ x: "-100%" }}
+                  animate={{ x: "100%" }}
+                  transition={{ duration: 0.6, ease: "easeInOut" }}
+                  aria-hidden
+                />
+              )}
+              <span className="relative z-10 px-1 leading-snug">{option?.text}</span>
+            </motion.button>
+          );
+        })}
+      </AnimatePresence>
+    </div>
+  );
+
   return (
-    <div className="relative w-full max-w-xl mx-auto">
+    <div className="relative w-full sm:max-w-xl sm:mx-auto">
       <FloatingScore show={showScore} triggerKey={scoreKey} />
       <AnimatePresence mode="wait">
         <motion.div
@@ -140,7 +266,10 @@ const QuizCard = ({
           exit={{ opacity: 0, x: -60 }}
           transition={{ duration: 0.35, ease: "easeInOut" }}
           className={[
-            "glass-card p-7 sm:p-9 w-full",
+            // Mobile: full-bleed, no border/shadow, tighter padding
+            "w-full rounded-none border-0 bg-transparent p-4 shadow-none",
+            // Desktop/tablet: keep glass card look
+            "sm:glass-card sm:rounded-xl sm:p-9",
             !readOnly && felixActive && !felixRetryPending ? "felix-shimmer" : "",
             !readOnly && felixRetryPending ? "felix-retry-flash" : "",
           ]
@@ -148,7 +277,7 @@ const QuizCard = ({
             .join(" ")}
         >
           {/* Header */}
-          <div className="flex items-center justify-between mb-5">
+          <div className="mb-4 flex items-center justify-between sm:mb-5">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[11px] text-muted-foreground font-body tracking-wide">
                 Question {currentIndex + 1} / {total}
@@ -186,14 +315,19 @@ const QuizCard = ({
                   🔥 {streak} streak
                 </motion.span>
               )}
+              {headerRightSlot}
             </div>
           </div>
 
           {/* Progress bar */}
-          <div className="w-full h-1.5 bg-muted/50 rounded-full mb-8 overflow-hidden">
+          <div className="mb-6 h-1 w-full overflow-hidden rounded-full bg-muted/35 sm:mb-8 sm:h-1.5">
             <motion.div
               className="h-full rounded-full"
-              style={{ background: "var(--gradient-purple)" }}
+              style={{
+                background:
+                  "linear-gradient(90deg, hsla(43, 72%, 52%, 0.95), hsla(270, 66%, 35%, 0.9), hsla(43, 72%, 52%, 0.95))",
+                boxShadow: "0 0 14px hsla(43, 72%, 52%, 0.18)",
+              }}
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.5, ease: "easeOut" }}
@@ -201,7 +335,7 @@ const QuizCard = ({
           </div>
 
           {lifelineDockProps && (
-            <div className="mb-5 flex items-start justify-between gap-4">
+            <div className="mb-3 w-full sm:mb-4">
               <LifelineDock
                 quizLifelines={lifelineDockProps.quizLifelines}
                 lifelineStates={lifelineDockProps.lifelineStates}
@@ -218,141 +352,119 @@ const QuizCard = ({
           <QuestionMedia image={question?.image} />
 
           {/* Question */}
-          <h3 className="font-display text-lg sm:text-xl font-semibold mb-8 text-center leading-snug">
+          <h3 className="mb-6 text-center font-display text-lg font-semibold leading-snug sm:mb-8 sm:text-xl">
             {question?.question}
           </h3>
 
-          {/* Options — 2×n grid, book-tile look (theme primary / display type) */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <AnimatePresence>
-              {question?.options?.map((option, index) => {
-                const isHidden = hiddenOptions?.includes(index);
-                const state = getOptionState(index);
-                const isDisabled = isInputLocked;
-                const spanClass = oddGridSpanClass(index);
-
-                if (isHidden) {
-                  return (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                      animate={{ opacity: 0, y: -12, filter: "blur(8px)", scale: 0.95 }}
-                      exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                      transition={{ duration: 0.5, ease: "easeOut" }}
-                      className={`relative flex min-h-[5.25rem] sm:min-h-[5.75rem] items-center justify-center overflow-hidden rounded-md border border-secondary/30 px-3 py-4 text-center pointer-events-none ${spanClass}`}
-                      style={{ boxShadow: quizOptionShadow }}
-                    >
-                      <span className="relative z-10 font-display text-sm sm:text-base font-bold italic text-balance text-muted-foreground/40">
-                        {option?.text}
-                      </span>
-                    </motion.div>
-                  );
-                }
-
-                const isCorrect = state === "correct";
-                const isWrong = state === "wrong";
-
-                const tileBase =
-                  "relative flex min-h-[5.25rem] sm:min-h-[5.75rem] w-full items-center justify-center overflow-hidden rounded-md border px-3 py-4 text-center font-display text-sm sm:text-base font-bold italic text-balance transition-all duration-300";
-
-                const tileStateClass =
-                  state === "idle"
-                    ? "border-black/20 bg-gradient-to-br from-primary to-indigo-deep text-primary-foreground hover:border-accent/50 hover:brightness-110 cursor-pointer"
-                    : state === "lucky-idle"
-                      ? "border-amber-400/50 bg-gradient-to-br from-primary to-indigo-deep text-primary-foreground ring-1 ring-amber-400/35 hover:brightness-110 cursor-pointer"
-                      : state === "highlighted"
-                        ? "border-accent/60 bg-gradient-to-br from-primary to-secondary text-primary-foreground ring-2 ring-accent/50 cursor-pointer"
-                        : isCorrect
-                          ? "border-success/70 bg-gradient-to-br from-success/90 to-success text-success-foreground cursor-default"
-                          : isWrong
-                            ? "border-destructive/70 bg-gradient-to-br from-destructive/85 to-destructive text-destructive-foreground cursor-default"
-                            : "border-border/25 bg-primary/25 text-primary-foreground/50 opacity-45 cursor-default pointer-events-none";
-
-                const tileShadow =
-                  state === "idle" || state === "highlighted" || state === "lucky-idle"
-                    ? ({ boxShadow: quizOptionShadow } as const)
-                    : isCorrect
-                      ? ({
-                        boxShadow:
-                          "4px 4px 0 hsl(var(--success) / 0.35), 0 0 22px hsl(var(--success) / 0.35)",
-                      } as const)
-                      : isWrong
-                        ? ({
-                          boxShadow:
-                            "4px 4px 0 hsl(var(--destructive) / 0.35), 0 0 18px hsl(var(--destructive) / 0.2)",
-                        } as const)
-                        : ({ boxShadow: quizOptionShadow } as const);
-
-                return (
-                  <motion.button
-                    key={index}
-                    layout
-                    type="button"
-                    onClick={() => handleSelect(index)}
-                    disabled={isDisabled}
-                    whileHover={
-                      !isDisabled && (state === "idle" || state === "highlighted" || state === "lucky-idle")
-                        ? { y: -2, boxShadow: "6px 6px 0 hsl(var(--obsidian) / 0.5), 8px 14px 22px -4px hsl(var(--obsidian) / 0.5)" }
-                        : undefined
-                    }
-                    whileTap={!isDisabled ? { y: 1 } : undefined}
-                    animate={
-                      isWrong
-                        ? { x: [0, -4, 4, -4, 4, 0], transition: { duration: 0.4 } }
-                        : {}
-                    }
-                    className={`${tileBase} ${tileStateClass} ${spanClass}`}
-                    style={tileShadow}
-                  >
-                    {isCorrect && (
-                      <motion.span
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
-                        initial={{ x: "-100%" }}
-                        animate={{ x: "100%" }}
-                        transition={{ duration: 0.6, ease: "easeInOut" }}
-                        aria-hidden
-                      />
-                    )}
-                    <span className="relative z-10 px-1 leading-snug">{option?.text}</span>
-                  </motion.button>
-                );
-              })}
-            </AnimatePresence>
-          </div>
-
-          {isTimeoutAnswer && answersRevealed && (
-            <p className="mt-4 text-center font-body text-sm font-medium text-amber-200/90">
-              Time&apos;s up — this counts as a wrong answer.
-            </p>
-          )}
-
-          <AnimatePresence>
-            {showExplanation && (
-              <motion.div
-                key="explanation"
-                role="note"
-                initial={{ opacity: 0, y: 28, scale: 0.94 }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                  scale: 1,
-                  transition: { type: "spring", stiffness: 420, damping: 22, mass: 0.85 },
-                }}
-                exit={{ opacity: 0, y: 12, transition: { duration: 0.2 } }}
-                className={[
-                  "mt-5 rounded-lg border px-4 py-3 text-left font-body text-sm leading-relaxed",
-                  answeredCorrectly
-                    ? "border-success/50 bg-success/10 text-foreground"
-                    : "border-destructive/45 bg-destructive/10 text-foreground",
-                ].join(" ")}
+          {/* Options / explanation: same slot after reveal; flip-style toggle */}
+          {!showExplanation ? (
+            <>
+              {renderOptionsGrid()}
+              {isTimeoutAnswer && answersRevealed && (
+                <p className="mt-4 text-center font-body text-sm font-medium text-amber-200/90">
+                  Time&apos;s up — this counts as a wrong answer.
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="relative">
+              <div
+                className="mb-4 flex justify-center"
+                role="tablist"
+                aria-label="Answer or explanation"
               >
-                <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  {answeredCorrectly ? "Nice!" : "Explanation"}
-                </span>
-                {explanationText}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                <div className="inline-flex max-w-full rounded-full border border-border/40 bg-muted/20 p-1">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={postAnswerFace === "answers"}
+                    onClick={() => setPostAnswerFace("answers")}
+                    className={cn(
+                      "min-h-[44px] min-w-[5.5rem] rounded-full px-3 py-2 text-xs font-semibold transition-colors sm:min-w-[7rem] sm:px-4",
+                      postAnswerFace === "answers"
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    Answers
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={postAnswerFace === "explanation"}
+                    onClick={() => setPostAnswerFace("explanation")}
+                    className={cn(
+                      "min-h-[44px] min-w-[5.5rem] rounded-full px-3 py-2 text-xs font-semibold transition-colors sm:min-w-[7rem] sm:px-4",
+                      postAnswerFace === "explanation"
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    Explanation
+                  </button>
+                </div>
+              </div>
+
+              {/* 3D flip: single rotateY (better on mobile than cross-fade) */}
+              <div
+                className="relative w-full overflow-hidden"
+                style={{
+                  perspective: "min(900px, 100vw)",
+                  WebkitPerspective: "min(900px, 100vw)",
+                }}
+              >
+                <motion.div
+                  className="relative grid w-full origin-center [transform-style:preserve-3d] will-change-transform"
+                  style={{ transformStyle: "preserve-3d" }}
+                  animate={{
+                    rotateY: postAnswerFace === "explanation" ? 0 : 180,
+                  }}
+                  transition={{
+                    duration: prefersReducedMotion ? 0 : 0.52,
+                    ease: [0.4, 0, 0.2, 1],
+                  }}
+                >
+                  {/* Front: explanation — grid-stacked with answers so height = max(content), no empty gap */}
+                  <div
+                    role="tabpanel"
+                    aria-hidden={postAnswerFace !== "explanation"}
+                    className={cn(
+                      "col-start-1 row-start-1 w-full min-w-0 rounded-lg border px-4 py-3 text-left font-body text-sm leading-relaxed sm:py-4 [backface-visibility:hidden] [-webkit-backface-visibility:hidden]",
+                      answeredCorrectly
+                        ? "border-success/50 bg-success/10 text-foreground"
+                        : "border-destructive/45 bg-destructive/10 text-foreground",
+                    )}
+                    style={{
+                      transform: "rotateY(0deg) translateZ(1px)",
+                    }}
+                  >
+                    <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      {answeredCorrectly ? "Nice!" : "Why"}
+                    </span>
+                    <p className="text-balance break-words">{explanationText}</p>
+                  </div>
+
+                  {/* Back: answers (pre-rotated 180° so it faces the user after parent flip) */}
+                  <div
+                    role="tabpanel"
+                    aria-hidden={postAnswerFace !== "answers"}
+                    className="col-start-1 row-start-1 w-full min-w-0 [backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
+                    style={{
+                      transform: "rotateY(180deg) translateZ(1px)",
+                    }}
+                  >
+                    {renderOptionsGrid()}
+                  </div>
+                </motion.div>
+              </div>
+
+              {isTimeoutAnswer && answersRevealed && (
+                <p className="mt-4 text-center font-body text-sm font-medium text-amber-200/90">
+                  Time&apos;s up — this counts as a wrong answer.
+                </p>
+              )}
+            </div>
+          )}
         </motion.div>
       </AnimatePresence>
     </div>

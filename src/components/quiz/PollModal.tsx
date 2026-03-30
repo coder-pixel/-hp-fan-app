@@ -22,7 +22,7 @@ export default function PollModal({ open, onClose, pollResults }: PollModalProps
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
-        className="border-border/50 bg-card text-card-foreground max-w-md gap-0 overflow-hidden p-0 sm:rounded-lg"
+        className="border-border/50 bg-card text-card-foreground w-[min(100%,22rem)] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden p-0 sm:w-full sm:max-w-md sm:rounded-lg"
         style={{ boxShadow: "0 0 32px hsla(270, 66%, 35%, 0.2)" }}
         onPointerDownOutside={onClose}
         onEscapeKeyDown={onClose}

@@ -185,6 +185,7 @@ export interface QuizShareCardConfig {
 export interface Quiz {
   id: string;
   title: string;
+  image?: string;
   questions: QuizQuestion[];
   difficulty: QuizDifficulty;
   category: string;
