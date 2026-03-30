@@ -67,7 +67,6 @@ export const timerPlugin: QuizPlugin = (() => {
 
       const setDidTimeout = () => {
         api.setState((s) => ({ ...s, timer: { ...s.timer, didTimeout: true } }));
-        // didTimeout stays true until next question start (so UI can show warning until advance).
       };
 
       const start = () => {
@@ -95,7 +94,6 @@ export const timerPlugin: QuizPlugin = (() => {
         intervalId = window.setInterval(() => {
           const state = api.getState();
 
-          // Bail if quiz is not actively playing or already answered
           if (state.status !== "playing" || state.selectedAnswer !== null) {
             clearTicking();
             api.setState((s) => ({ ...s, timer: { ...s.timer, isRunning: false } }));
@@ -198,7 +196,6 @@ export const timerPlugin: QuizPlugin = (() => {
         if (id === "freezeTime") freeze();
       });
 
-      // After a felix retry the question resets; resume the timer from remaining time.
       api.on("onFelixRetry", () => {
         if (!isTimerEnabled(api)) return;
         const s = api.getState();
@@ -210,7 +207,6 @@ export const timerPlugin: QuizPlugin = (() => {
         const secondsPerQuestion = getSecondsPerQuestion(api);
         const remainingSeconds = Math.max(1, s.timer.remaining);
 
-        // Rewind the logical start so the remaining time is preserved.
         questionStartMs = Date.now() - (secondsPerQuestion - remainingSeconds) * 1000;
         frozenAccumulatedMs = 0;
         frozenSinceMs = null;
@@ -266,7 +262,6 @@ export const timerPlugin: QuizPlugin = (() => {
         }, 200);
       });
 
-      // Initialize timer state so UI can safely read it even before start.
       resetTimerState(getSecondsPerQuestion(api));
 
       cleanup = () => {
@@ -280,4 +275,3 @@ export const timerPlugin: QuizPlugin = (() => {
     },
   };
 })();
-

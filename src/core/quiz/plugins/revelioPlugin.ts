@@ -13,7 +13,6 @@ export const revelioPlugin: QuizPlugin = {
       const question = state.questions[state.questionIndex];
       if (!question || question.options.length !== 4) return;
 
-      // Mark usage
       api.setState((s) => ({
         ...s,
         lifelineStates: {
@@ -22,7 +21,6 @@ export const revelioPlugin: QuizPlugin = {
         },
       }));
 
-      // Pick 2 random incorrect indices
       const incorrectIndices = question.options
         .map((_, i) => i)
         .filter((i) => i !== question.correctAnswer);
@@ -33,7 +31,6 @@ export const revelioPlugin: QuizPlugin = {
       api.setState((s) => ({ ...s, hiddenOptions: toHide }));
     });
 
-    // Clear hidden options on next question
     api.on("onQuestionStart", () => {
       api.setState((s) => (s.hiddenOptions.length > 0 ? { ...s, hiddenOptions: [] } : s));
     });

@@ -2,8 +2,6 @@ import type { QuizPlugin, PluginAPI } from "../engineTypes";
 
 /**
  * Tracks consecutive correct answers (streak).
- * Already baked into state shape; this plugin keeps the logic
- * isolated from the core engine.
  */
 export const streakPlugin: QuizPlugin = {
   id: "streak",

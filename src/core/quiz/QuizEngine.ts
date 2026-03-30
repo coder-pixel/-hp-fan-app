@@ -6,10 +6,12 @@ import type {
   QuizEventHandler,
   QuizConfig,
 } from "./engineTypes";
+import type { QuizStrategy } from "./strategyTypes";
 import type { LifelineId } from "@/components/quiz/lifelines/lifelineTypes";
 import { lifelineRegistry } from "@/components/quiz/lifelines/lifelineRegistry";
 import { QuizEventBus } from "./engineEvents";
 import { QUIZ_TIMEOUT_ANSWER_INDEX } from "./constants";
+import type { QuizQuestion } from "@/types/quiz";
 
 const shuffle = <T>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
 
@@ -73,27 +75,34 @@ export function createInitialState(
 
 /**
  * Imperative quiz engine. Holds state + event bus + plugins.
- * Used inside the React provider via useRef so plugin closures
- * always read the latest state through getState().
+ * Quiz-type rules are delegated to a {@link QuizStrategy} (strategy pattern).
  */
 export class QuizEngine {
   state: QuizState;
   private bus = new QuizEventBus();
   private plugins: QuizPlugin[] = [];
   private onStateChange: (s: QuizState) => void;
+  private strategy: QuizStrategy<QuizQuestion, number>;
 
-  constructor(initial: QuizState, onStateChange: (s: QuizState) => void) {
+  constructor(
+    initial: QuizState,
+    onStateChange: (s: QuizState) => void,
+    strategy: QuizStrategy<QuizQuestion, number>,
+  ) {
     this.state = initial;
     this.onStateChange = onStateChange;
+    this.strategy = strategy;
   }
 
-  // ── State helpers ─────────────────────────────────────
+  setStrategy(strategy: QuizStrategy<QuizQuestion, number>) {
+    this.strategy = strategy;
+  }
+
   private setState(updater: (prev: QuizState) => QuizState) {
     this.state = updater(this.state);
     this.onStateChange(this.state);
   }
 
-  // ── Plugin API ────────────────────────────────────────
   private createPluginAPI(): PluginAPI {
     return {
       getState: () => this.state,
@@ -115,7 +124,6 @@ export class QuizEngine {
     plugin.setup?.(this.createPluginAPI());
   }
 
-  // ── Actions ───────────────────────────────────────────
   startQuiz() {
     this.setState((s) => ({ ...s, status: "playing" }));
     this.bus.emit("onQuizStart", {
@@ -131,10 +139,15 @@ export class QuizEngine {
     if (this.state.selectedAnswer !== null) return;
 
     const question = this.state.questions?.[this.state.questionIndex];
-    const isActuallyCorrect = optionIndex === question?.correctAnswer;
+    const isTimeout = optionIndex === QUIZ_TIMEOUT_ANSWER_INDEX;
+    const evaluation = question
+      ? this.strategy.evaluateAnswer(question, optionIndex, {
+          isTimeoutAnswer: isTimeout,
+        })
+      : { correct: false };
+    const isActuallyCorrect = evaluation.correct;
 
-    // Timer timeout: always a wrong answer, never Felix retry.
-    if (optionIndex === QUIZ_TIMEOUT_ANSWER_INDEX) {
+    if (isTimeout) {
       this.setState((s) => ({
         ...s,
         selectedAnswer: optionIndex,
@@ -149,8 +162,6 @@ export class QuizEngine {
       return;
     }
 
-    // Felix retry path: wrong answer while retry hasn't been consumed yet.
-    // Show the wrong highlight briefly; the context schedules retryQuestion() after the delay.
     if (
       this.state?.felixActive &&
       !this.state?.felixRetryPending &&
@@ -171,7 +182,6 @@ export class QuizEngine {
       return;
     }
 
-    // Normal answer path (felix active + correct first-try, or felix not active)
     const correct = isActuallyCorrect;
 
     this.setState((s) => ({
@@ -189,7 +199,6 @@ export class QuizEngine {
     });
   }
 
-  /** Resets question state after the felix-retry delay so the player can answer again. */
   retryQuestion() {
     const questionIndex = this.state.questionIndex;
     this.setState((s) => ({
@@ -208,7 +217,11 @@ export class QuizEngine {
     const q = this.state.questions?.[endedIndex];
     const userOptionIndex = this.state.selectedAnswer;
     const correct =
-      userOptionIndex !== null && userOptionIndex === q?.correctAnswer;
+      q != null && userOptionIndex !== null
+        ? this.strategy.evaluateAnswer(q, userOptionIndex, {
+            isTimeoutAnswer: userOptionIndex === QUIZ_TIMEOUT_ANSWER_INDEX,
+          }).correct
+        : false;
     const historyEntry = {
       questionIndex: endedIndex,
       userOptionIndex,
@@ -216,8 +229,11 @@ export class QuizEngine {
       explanation: q?.explanation ?? "",
     };
 
-    const nextIndex = endedIndex + 1;
-    if (nextIndex >= this.state.questions?.length) {
+    const nextIndex = this.strategy.getNextQuestion(
+      endedIndex,
+      this.state.questions?.length ?? 0,
+    );
+    if (nextIndex === null) {
       this.setState((s) => ({
         ...s,
         answerHistory: [...s.answerHistory, historyEntry],
@@ -225,9 +241,14 @@ export class QuizEngine {
         displayQuestionIndex: endedIndex,
       }));
       this.bus.emit("onQuestionEnd", { index: endedIndex });
+      const result = this.strategy.calculateResult({
+        ...this.state,
+        answerHistory: [...this.state.answerHistory, historyEntry],
+        status: "finished",
+      });
       this.bus.emit("onQuizFinish", {
-        score: this.state.score,
-        total: this.state.questions?.length,
+        score: result.score,
+        total: result.totalQuestions,
       });
       return;
     }

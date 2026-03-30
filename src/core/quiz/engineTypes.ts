@@ -30,6 +30,14 @@ export interface QuizConfig {
   questions?: QuizQuestion[];
   /** Sound effects (timer, correct/wrong, timeout). When enabled, quiz sounds play. */
   sounds?: QuizSoundsConfig;
+  /**
+   * Registered strategy id (e.g. `multiple-choice`). Defaults via registry when omitted.
+   */
+  strategyId?: string;
+  /**
+   * Theme id for UI renderer only; engine ignores this.
+   */
+  themeId?: string;
 }
 
 export interface TimerState {
@@ -104,10 +112,7 @@ export interface PluginAPI {
   getState: () => QuizState;
   setState: (updater: (prev: QuizState) => QuizState) => void;
   on: <E extends QuizEventName>(event: E, handler: QuizEventHandler<E>) => void;
-  off: <E extends QuizEventName>(
-    event: E,
-    handler: QuizEventHandler<E>,
-  ) => void;
+  off: <E extends QuizEventName>(event: E, handler: QuizEventHandler<E>) => void;
   actions: {
     answerQuestion: (optionIndex: number) => void;
     advanceQuestion: () => void;

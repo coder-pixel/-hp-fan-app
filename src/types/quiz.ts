@@ -190,6 +190,14 @@ export interface Quiz {
   category: string;
   /** Quiz-level type retained for backward compatibility; questions define their own type. */
   type: "multiple-choice";
+  /**
+   * Engine strategy id (e.g. `multiple-choice`). Defaults via registry when omitted.
+   */
+  strategyId?: string;
+  /**
+   * UI theme id (e.g. `harry-potter`). Resolved by the play page; engine ignores this.
+   */
+  themeId?: string;
   lifelineConfig?: QuizPluginsConfig;
   /** Sound effects (timer, correct/wrong, timeout). Omit or enabled: true to play sounds. */
   sounds?: QuizSoundsConfig;

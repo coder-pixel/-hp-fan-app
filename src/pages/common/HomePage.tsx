@@ -6,7 +6,7 @@ import HeroSection from "@/components/home/HeroSection";
 import QuizCard from "@/components/home/QuizCard";
 import FunFacts from "@/components/home/FunFacts";
 import CTASection from "@/components/home/CTASection";
-import { quizzes } from "@/data/quizzes";
+import { quizzes } from "@/configs";
 import type { Quiz } from "@/types/quiz";
 import { QuizDifficulty } from "@/types/quiz";
 

@@ -16,7 +16,6 @@ export const lifelinePlugin: QuizPlugin = {
       const question = state.questions[state.questionIndex];
       if (!question) return;
 
-      // Mark usage
       api.setState((s) => ({
         ...s,
         lifelineStates: {
@@ -31,11 +30,8 @@ export const lifelinePlugin: QuizPlugin = {
       applyEffect(api, id, question);
     });
 
-    // Clear felix after a normal (non-retry) answer
     api.on("onAnswerSelected", () => {
       const s = api.getState();
-      // When felixRetryPending is true the wrong-answer was the retry trigger;
-      // retryQuestion() will clear felixActive itself — don't clear it here.
       if (s.felixActive && !s.felixRetryPending) {
         api.setState((prev) => ({ ...prev, felixActive: false }));
       }
@@ -94,13 +90,11 @@ function applyEffect(api: PluginAPI, id: LifelineId, question: QuizQuestion) {
     }
     case "legilimency": {
       const correct = question?.correctAnswer;
-      // const names = ["Dumbledore", "McGonagall", "Snape", "Hagrid"];
       const names = question?.options?.map(
         (option: QuizOption) => option?.text,
       );
-      // Simulate an "audience poll": the correct answer is favored with a higher percentage (65–84%), while other options get smaller random shares (10–44%).
       const percents = question?.options?.map(
-        (option: QuizOption, i: number) => {
+        (_option: QuizOption, i: number) => {
           if (i === correct) return 65 + Math.floor(Math.random() * 25);
           return 10 + Math.floor(Math.random() * 35);
         },

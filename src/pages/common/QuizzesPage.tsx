@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import MagicalParticles from "@/components/quiz/MagicalParticles";
-import { quizzes } from "@/data/quizzes";
+import { quizzes } from "@/configs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
