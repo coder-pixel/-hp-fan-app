@@ -6,7 +6,7 @@ import {
   mapHistoryToResultAnswers,
 } from "@/quiz-results";
 import { QUIZ_TIMEOUT_ANSWER_INDEX } from "@/quiz-engine/constants";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Volume2, VolumeX } from "lucide-react";
 
@@ -49,7 +49,7 @@ function toQuizQuestions(quiz: Quiz): QuizQuestion[] {
     });
 }
 
-const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
+const QuizPlayInner = ({ quiz, autoStart }: { quiz: Quiz; autoStart?: boolean }) => {
   const { state, actions } = useQuiz();
   const {
     status,
@@ -90,8 +90,8 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
     displayQuestionIndex < questionIndex
       ? "Next"
       : displayQuestionIndex === totalQuestions - 1 &&
-          questionIndex === displayQuestionIndex &&
-          selectedAnswer !== null
+        questionIndex === displayQuestionIndex &&
+        selectedAnswer !== null
         ? "Finish"
         : "Next";
   const soundsAllowed = config?.sounds?.enabled !== false;
@@ -102,6 +102,7 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
   const [finishedPanel, setFinishedPanel] = useState<"results" | "review" | "share">("results");
   const legilimencyQuestionIndexRef = useRef<number | null>(null);
   const prevHiddenOptionsLenRef = useRef(0);
+  const hasAutoStartedRef = useRef(false);
 
   // Felix Felicis microcopy — handles all three message phases.
   const { microcopy: felixMicrocopy } = useFelixFelicis(
@@ -146,6 +147,16 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
   }, [status]);
 
   useEffect(() => {
+    if (!autoStart) return;
+    if (status !== "instructions") return;
+    if (hasAutoStartedRef.current) return;
+    if (typeof actions?.startQuiz !== "function") return;
+
+    hasAutoStartedRef.current = true;
+    actions.startQuiz();
+  }, [autoStart, status, actions]);
+
+  useEffect(() => {
     // Changing the viewed question: reset all per-question modal states.
     setAskDumbledoreModalOpen(false);
     askDumbledoreQuestionIndexRef.current = null;
@@ -182,32 +193,64 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
     [config?.title, quiz],
   );
 
+  if (status === "instructions" && autoStart) {
+    return (
+      <div className="relative z-10 mx-auto max-w-2xl text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="px-1 py-10"
+        >
+          <h1 className="font-display text-lg font-semibold leading-snug tracking-tight text-balance sm:text-xl md:text-2xl">
+            {config?.title}
+          </h1>
+          <p className="mt-2 text-sm font-body text-muted-foreground">Starting quiz...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
   if (status === "instructions") {
     return (
-      <div className="relative z-10 mx-auto max-w-3xl flex flex-col items-center justify-center text-center">
-        <div className="flex flex-col items-center justify-center mb-8">
-          <span className="block text-xs font-body font-medium tracking-widest uppercase text-accent/70 mb-3">
-            {quiz?.category}
-          </span>
-          <h1 className="font-display text-3xl sm:text-4xl font-bold mb-2">{config?.title}</h1>
-        </div>
+      <div className="relative z-10 w-full max-w-6xl -mx-4 sm:mx-auto sm:max-w-6xl">
+        {/* <div className="mb-8 flex w-full max-w-2xl flex-col items-center px-1">
+          {quiz?.category ? (
+            <span className="mb-3 block text-xs font-body font-medium uppercase tracking-widest text-accent/70">
+              {quiz.category}
+            </span>
+          ) : null}
+          <h1 className="font-display text-2xl font-bold leading-snug tracking-tight text-balance text-foreground sm:text-3xl md:text-4xl">
+            {config?.title}
+          </h1>
+        </div> */}
 
-        <QuizInstructions totalQuestions={questions?.length} onStart={actions?.startQuiz} quizLifelines={quiz?.lifelineConfig} />
+        <QuizInstructions
+          totalQuestions={questions?.length}
+          onStart={actions?.startQuiz}
+          quizLifelines={quiz?.lifelineConfig}
+          quizTitle={quiz?.title}
+          quizImage={quiz?.image}
+        />
       </div>
     );
   }
 
   return (
     <div className="relative z-10 mx-auto max-w-2xl">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-4">
-        {/* <span className="text-xs font-body font-medium tracking-widest uppercase text-accent/70 mb-3">
-          {quiz?.category}
-        </span> */}
-        <h1 className="font-display text-3xl sm:text-4xl font-bold mb-2">{config?.title}</h1>
-        {/* <p className="text-muted-foreground font-body text-sm sm:text-base">
-          Score: <span className="text-foreground font-semibold">{score}</span>
-        </p> */}
-      </motion.div>
+      {status !== "playing" && quiz?.category ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-5 border-b border-border/30 pb-5 text-center sm:mb-6"
+        >
+          <span className="mb-2 block font-body text-[11px] font-medium uppercase tracking-[0.2em] text-accent/70">
+            {quiz?.category}
+          </span>
+          <h1 className="mx-auto max-w-xl px-1 font-display text-lg font-semibold leading-snug tracking-tight text-balance text-foreground sm:max-w-2xl sm:text-xl sm:font-bold md:text-2xl">
+            {config?.title}
+          </h1>
+        </motion.div>
+      ) : null}
 
       {status === "finished" ? (
         <>
@@ -234,18 +277,6 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
         </>
       ) : (
         <>
-          {soundsAllowed && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setAudioOn((v) => !v)}
-              aria-label={audioOn ? "Mute quiz sounds" : "Enable quiz sounds"}
-              className="absolute top-[-14px] right-2 z-[60] h-9 w-9 rounded-xl border border-border/40 bg-background/50 backdrop-blur-md hover:bg-accent/10"
-            >
-              {audioOn ? <Volume2 className="h-4 w-4 text-accent" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
-            </Button>
-          )}
           <LifelineEffects effect={activeEffect} />
           <DumbledoreModal
             open={
@@ -261,21 +292,21 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
           {config?.timer?.enabled &&
             timer?.didTimeout &&
             displayQuestionIndex === questionIndex && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="mb-4 rounded-lg border border-amber-500/40 bg-amber-950/30 px-4 py-3 text-center backdrop-blur-sm"
-              style={{ boxShadow: "0 0 20px hsla(38, 92%, 50%, 0.15)" }}
-            >
-              <p className="text-sm font-semibold font-body text-amber-200">
-                ⏱️ Time&apos;s up!
-              </p>
-              <p className="mt-1 text-xs font-body text-amber-200/80">
-                Your answer was marked wrong. Use Next when you&apos;re ready to continue.
-              </p>
-            </motion.div>
-          )}
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="mb-4 rounded-lg border border-amber-500/40 bg-amber-950/30 px-4 py-3 text-center backdrop-blur-sm"
+                style={{ boxShadow: "0 0 20px hsla(38, 92%, 50%, 0.15)" }}
+              >
+                <p className="text-sm font-semibold font-body text-amber-200">
+                  ⏱️ Time&apos;s up!
+                </p>
+                <p className="mt-1 text-xs font-body text-amber-200/80">
+                  Your answer was marked wrong. Use Next when you&apos;re ready to continue.
+                </p>
+              </motion.div>
+            )}
 
           <div className="relative">
             <FelixMicrocopy message={felixMicrocopy} />
@@ -287,6 +318,24 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
               selectedAnswer={displayedSelectedAnswer}
               readOnly={isReviewingPast}
               onSelect={actions?.answerQuestion}
+              headerRightSlot={
+                soundsAllowed ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setAudioOn((v) => !v)}
+                    aria-label={audioOn ? "Mute quiz sounds" : "Enable quiz sounds"}
+                    className="h-8 w-8 rounded-xl border border-border/40 bg-background/50 backdrop-blur-md hover:bg-accent/10"
+                  >
+                    {audioOn ? (
+                      <Volume2 className="h-4 w-4 text-accent" />
+                    ) : (
+                      <VolumeX className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                ) : null
+              }
               mapHighlight={isReviewingPast ? null : mapHighlight}
               felixActive={isReviewingPast ? false : felixActive}
               felixRetryPending={isReviewingPast ? false : felixRetryPending}
@@ -301,57 +350,57 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
               lifelineDockProps={
                 !isReviewingPast
                   ? {
-                      quizLifelines: quiz?.lifelineConfig,
-                      lifelineStates,
-                      onActivate: (id) => {
-                        if (
-                          id === "askDumbledore" &&
-                          activeEffect?.type === "askDumbledore" &&
-                          !!activeEffect?.hint &&
-                          askDumbledoreQuestionIndexRef.current === displayQuestionIndex
-                        ) {
-                          setAskDumbledoreModalOpen(true);
-                          return;
-                        }
-                        if (
-                          id === "legilimency" &&
-                          activeEffect?.type === "legilimency" &&
-                          !!activeEffect?.pollResults &&
-                          legilimencyQuestionIndexRef.current === displayQuestionIndex
-                        ) {
-                          setPollModalOpen(true);
-                          return;
-                        }
+                    quizLifelines: quiz?.lifelineConfig,
+                    lifelineStates,
+                    onActivate: (id) => {
+                      if (
+                        id === "askDumbledore" &&
+                        activeEffect?.type === "askDumbledore" &&
+                        !!activeEffect?.hint &&
+                        askDumbledoreQuestionIndexRef.current === displayQuestionIndex
+                      ) {
+                        setAskDumbledoreModalOpen(true);
+                        return;
+                      }
+                      if (
+                        id === "legilimency" &&
+                        activeEffect?.type === "legilimency" &&
+                        !!activeEffect?.pollResults &&
+                        legilimencyQuestionIndexRef.current === displayQuestionIndex
+                      ) {
+                        setPollModalOpen(true);
+                        return;
+                      }
 
-                        if (id === "felixFelicis") {
-                          toast({
-                            title: "Felix Felicis",
-                            description: "A sip of liquid luck. If you falter, you get one more try this round.",
-                          });
-                        }
-                        actions?.useLifeline(id);
-                      },
-                      disabled: selectedAnswer !== null || felixRetryPending,
-                      activeId: activeEffect?.type ?? null,
-                      allowUsedActivation: (id) => {
-                        if (
-                          id === "askDumbledore" &&
-                          activeEffect?.type === "askDumbledore" &&
-                          !!activeEffect?.hint &&
-                          askDumbledoreQuestionIndexRef.current === displayQuestionIndex
-                        )
-                          return true;
-                        if (
-                          id === "legilimency" &&
-                          activeEffect?.type === "legilimency" &&
-                          !!activeEffect?.pollResults &&
-                          legilimencyQuestionIndexRef.current === displayQuestionIndex
-                        )
-                          return true;
-                        return false;
-                      },
-                      label: "Lifelines",
-                    }
+                      if (id === "felixFelicis") {
+                        toast({
+                          title: "Felix Felicis",
+                          description: "A sip of liquid luck. If you falter, you get one more try this round.",
+                        });
+                      }
+                      actions?.useLifeline(id);
+                    },
+                    disabled: selectedAnswer !== null || felixRetryPending,
+                    activeId: activeEffect?.type ?? null,
+                    allowUsedActivation: (id) => {
+                      if (
+                        id === "askDumbledore" &&
+                        activeEffect?.type === "askDumbledore" &&
+                        !!activeEffect?.hint &&
+                        askDumbledoreQuestionIndexRef.current === displayQuestionIndex
+                      )
+                        return true;
+                      if (
+                        id === "legilimency" &&
+                        activeEffect?.type === "legilimency" &&
+                        !!activeEffect?.pollResults &&
+                        legilimencyQuestionIndexRef.current === displayQuestionIndex
+                      )
+                        return true;
+                      return false;
+                    },
+                    label: "Lifelines",
+                  }
                   : undefined
               }
             />
@@ -397,6 +446,8 @@ const QuizPlayInner = ({ quiz }: { quiz: Quiz }) => {
 
 const QuizPlayPage = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const autoStart = searchParams.get("start") === "1";
 
   const quiz = useMemo(() => quizzes?.find((q: Quiz) => q?.id === id), [id]);
 
@@ -430,7 +481,7 @@ const QuizPlayPage = () => {
               sounds: quiz?.sounds ?? { enabled: true },
             }}
           >
-            <QuizPlayInner quiz={quiz} />
+            <QuizPlayInner quiz={quiz} autoStart={autoStart} />
           </QuizProvider>
         )}
       </main>
