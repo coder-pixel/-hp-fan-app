@@ -207,14 +207,14 @@ const QuizCard = ({
               ? ({ boxShadow: quizOptionShadow } as const)
               : isCorrect
                 ? ({
-                    boxShadow:
-                      "4px 4px 0 hsl(var(--success) / 0.35), 0 0 22px hsl(var(--success) / 0.35)",
-                  } as const)
+                  boxShadow:
+                    "4px 4px 0 hsl(var(--success) / 0.35), 0 0 22px hsl(var(--success) / 0.35)",
+                } as const)
                 : isWrong
                   ? ({
-                      boxShadow:
-                        "4px 4px 0 hsl(var(--destructive) / 0.35), 0 0 18px hsl(var(--destructive) / 0.2)",
-                    } as const)
+                    boxShadow:
+                      "4px 4px 0 hsl(var(--destructive) / 0.35), 0 0 18px hsl(var(--destructive) / 0.2)",
+                  } as const)
                   : ({ boxShadow: quizOptionShadow } as const);
 
           return (
@@ -386,7 +386,7 @@ const QuizCard = ({
                         : "text-muted-foreground hover:text-foreground",
                     )}
                   >
-                    Answers
+                    Options
                   </button>
                   <button
                     type="button"
