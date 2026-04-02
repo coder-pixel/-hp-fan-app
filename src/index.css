@@ -355,6 +355,86 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
+  *  THEME: Light
+  *  Premium clean light theme with warm tones — soft whites with
+  *  gold/purple hints for HP feel
+  *  Apply: <html data-theme="light">
+  * ═══════════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  /* ── Core Surfaces ──────────────────────────────────────── */
+  --background: 220 15% 96%;
+  --foreground: 220 15% 15%;
+
+  --card: 220 20% 100%;
+  --card-foreground: 220 15% 15%;
+
+  --popover: 220 20% 100%;
+  --popover-foreground: 220 15% 15%;
+
+  /* ── Brand Colors ───────────────────────────────────────── */
+  --primary: 270 55% 45%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 270 25% 18%;
+  --secondary-foreground: 0 0% 100%;
+
+  /* ── Semantic States ────────────────────────────────────── */
+  --muted: 220 10% 92%;
+  /* ── Borders & Focus ────────────────────────────────────── */
+  --border: 220 12% 80%;
+  --input: 220 12% 80%;
+  --ring: 43 85% 45%;
+
+  /* ── Extended Magical Tokens ─────────────────────────────── */
+  --gold: 43 85% 45%;
+  --gold-glow: 43 90% 52%;
+  --indigo-deep: 270 55% 35%;
+  --purple-royal: 270 55% 45%;
+  --obsidian: 220 15% 96%;
+  --silver: 220 15% 40%;
+
+  /* ── Gradients & Shadows ────────────────────────────────── */
+  --gradient-hero: linear-gradient(
+    135deg,
+    hsl(220 15% 96%) 0%,
+    hsl(220 20% 92%) 50%,
+    hsl(270 15% 96%) 100%
+  );
+  --gradient-card: linear-gradient(
+    145deg,
+    hsla(220 20% 100% / 0.95),
+    hsla(220 15% 98% / 0.8)
+  );
+  --gradient-gold: linear-gradient(135deg, hsl(43 85% 45%), hsl(38 80% 38%));
+  --gradient-purple: linear-gradient(
+    135deg,
+    hsl(270 55% 45%),
+    hsl(270 25% 18%)
+  );
+
+  --shadow-glow-gold: 0 0 20px hsla(43 85% 45% / 0.25);
+  --shadow-glow-gold-strong:
+    0 0 30px hsla(43 85% 45% / 0.35), 0 0 60px hsla(43 85% 45% / 0.12);
+  --shadow-glow-purple: 0 0 20px hsla(270 55% 45% / 0.25);
+  --shadow-glow-purple-strong:
+    0 0 30px hsla(270 55% 45% / 0.35), 0 0 60px hsla(270 55% 45% / 0.12);
+  --shadow-card:
+    0 4px 24px -4px hsla(220 15% 15% / 0.08), 0 0 0 1px hsla(220 12% 80% / 0.3);
+  --shadow-card-hover:
+    0 8px 40px -8px hsla(270 55% 45% / 0.15), 0 0 0 1px hsla(220 12% 80% / 0.5);
+
+  /* ── Sidebar Component ───────────────────────────────────── */
+  --sidebar-background: 220 15% 94%;
+  --sidebar-foreground: 220 15% 15%;
+  --sidebar-primary: 270 55% 45%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 270 25% 18%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 220 12% 80%;
+  --sidebar-ring: 43 85% 45%;
+}
+
+/* ═══════════════════════════════════════════════════════════════
   *  ADD MORE THEMES BELOW AS NEEDED
   * ═══════════════════════════════════════════════════════════════ */
 
@@ -366,8 +446,13 @@
     @apply border-border;
   }
 
+  html {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
   body {
     @apply bg-background text-foreground font-body antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   h1,
@@ -393,7 +478,7 @@
     */
   .glass-card {
     @apply bg-card/80 backdrop-blur-md rounded-xl;
-    border: 1px solid hsla(270, 30%, 25%, 0.4);
+    border: 1px solid hsla(var(--border) / 0.4);
     box-shadow: var(--shadow-card);
     background-image: var(--gradient-card);
   }
@@ -407,7 +492,7 @@
     @apply glass-card transition-all duration-500;
   }
   .glass-card-hover:hover {
-    border-color: hsla(270, 66%, 45%, 0.5);
+    border-color: hsla(var(--secondary) / 0.5);
     box-shadow: var(--shadow-card-hover);
   }
 
@@ -466,13 +551,13 @@
     */
   .btn-secondary-outline {
     @apply px-8 py-3 rounded-lg border font-semibold font-body transition-all duration-300;
-    border-color: hsla(270, 30%, 30%, 0.6);
+    border-color: hsla(var(--border) / 0.6);
     color: hsl(var(--foreground));
   }
   .btn-secondary-outline:hover {
     border-color: hsl(var(--accent));
     color: hsl(var(--accent));
-    box-shadow: 0 0 15px hsla(43, 72%, 52%, 0.15);
+    box-shadow: 0 0 15px hsla(var(--accent) / 0.15);
   }
 
   /**
