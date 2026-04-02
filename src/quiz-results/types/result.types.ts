@@ -37,24 +37,26 @@ export interface QuizSocialShareUiConfig {
   facebook?: { enabled?: boolean; url?: string };
 }
 
+export interface FeedbackFormConfig {
+  enabled?: boolean;
+  title?: string;
+  subtitle?: string;
+}
+
 export interface QuizResultsUiConfig {
   quizTitle?: string;
   shareUrl?: string;
   appName?: string;
   emotionalBands?: EmotionalBand[];
   performanceBands?: PerformanceBand[];
-  /** Min % to show as “passed” on the share card (defaults to 60 if omitted). */
   passMark?: number;
-  /** Optional flair under the headline (house, archetype, etc.) */
   resultTag?: string;
-  /** Per-platform share buttons (from quiz `resultsPageConfig.socialShareConfig`). */
   socialShare?: QuizSocialShareUiConfig;
+  feedbackForm?: FeedbackFormConfig;
   shareCard?: {
     headline?: string;
     tagline?: string;
-    /** Viral line on the card footer; overrides generated line when set. */
     challengeLine?: string;
-    /** If omitted, all three themes are available in the picker */
     themes?: ShareCardTheme[];
     defaultTheme?: ShareCardTheme;
   };
