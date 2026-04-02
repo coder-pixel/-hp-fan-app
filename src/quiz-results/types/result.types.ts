@@ -55,7 +55,6 @@ export interface QuizResultsUiConfig {
   feedbackForm?: FeedbackFormConfig;
   shareCard?: {
     headline?: string;
-    tagline?: string;
     challengeLine?: string;
     themes?: ShareCardTheme[];
     defaultTheme?: ShareCardTheme;

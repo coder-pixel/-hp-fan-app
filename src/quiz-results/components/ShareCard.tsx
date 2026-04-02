@@ -1,29 +1,73 @@
 import { forwardRef } from "react";
-import { APP_LOGO_SRC, APP_NAME } from "@/config/appBranding";
+import { Star, Sparkles, Wand2 } from "lucide-react";
+import { APP_NAME } from "@/config/appBranding";
 import type { ShareCardTheme } from "../types/result.types";
 import { cn } from "@/lib/utils";
 
 export interface ShareCardProps {
   theme: ShareCardTheme;
   headline: string;
-  tagline: string;
   score: number;
   total: number;
   percent?: number;
   quizTitle?: string;
-  quizUrl?: string;
-  performanceLabel?: string;
   challengeLine?: string;
-  /** Min % to count as passed; defaults to 60. */
-  passMark?: number;
   className?: string;
 }
 
-const themeShell: Record<ShareCardTheme, string> = {
-  light:
-    "bg-gradient-to-b from-zinc-50 to-zinc-100 text-zinc-900 border-zinc-200/80 shadow-sm",
-  dark: "bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950 text-white border-white/10",
-  fun: "bg-gradient-to-br from-violet-600 via-fuchsia-600 to-amber-500 text-white border-white/20",
+const themeStyles: Record<ShareCardTheme, { 
+  bg: string; 
+  text: string; 
+  accent: string; 
+  border: string;
+  scoreColor: string;
+  iconBg: string;
+}> = {
+  light: {
+    bg: "bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50",
+    text: "text-amber-900",
+    accent: "text-amber-600",
+    border: "border-amber-200/60",
+    scoreColor: "text-amber-600",
+    iconBg: "bg-amber-400/20",
+  },
+  dark: {
+    bg: "bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900",
+    text: "text-amber-100",
+    accent: "text-amber-400",
+    border: "border-amber-500/30",
+    scoreColor: "text-amber-400",
+    iconBg: "bg-amber-400/20",
+  },
+  fun: {
+    bg: "bg-gradient-to-br from-violet-600 via-fuchsia-600 to-amber-500",
+    text: "text-white",
+    accent: "text-yellow-200",
+    border: "border-white/30",
+    scoreColor: "text-white",
+    iconBg: "bg-white/20",
+  },
+};
+
+const decorativeElements = {
+  light: [
+    { icon: Star, className: "absolute top-6 left-4 h-4 w-4 text-amber-300 rotate-12" },
+    { icon: Sparkles, className: "absolute top-10 right-6 h-5 w-5 text-amber-400 -rotate-6" },
+    { icon: Star, className: "absolute bottom-14 left-6 h-3 w-3 text-amber-300/60 rotate-45" },
+    { icon: Sparkles, className: "absolute bottom-16 right-4 h-4 w-4 text-amber-400/70 rotate-12" },
+  ],
+  dark: [
+    { icon: Star, className: "absolute top-6 left-4 h-4 w-4 text-amber-400/60 rotate-12" },
+    { icon: Sparkles, className: "absolute top-10 right-6 h-5 w-5 text-amber-400/80 -rotate-6" },
+    { icon: Star, className: "absolute bottom-14 left-6 h-3 w-3 text-amber-400/40 rotate-45" },
+    { icon: Sparkles, className: "absolute bottom-16 right-4 h-4 w-4 text-amber-400/60 rotate-12" },
+  ],
+  fun: [
+    { icon: Star, className: "absolute top-6 left-4 h-4 w-4 text-white/60 rotate-12" },
+    { icon: Sparkles, className: "absolute top-10 right-6 h-5 w-5 text-yellow-200/80 -rotate-6" },
+    { icon: Star, className: "absolute bottom-14 left-6 h-3 w-3 text-white/40 rotate-45" },
+    { icon: Sparkles, className: "absolute bottom-16 right-4 h-4 w-4 text-yellow-200/60 rotate-12" },
+  ],
 };
 
 export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
@@ -31,220 +75,153 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
     {
       theme,
       headline,
-      tagline,
       score,
       total,
       percent,
       quizTitle,
-      quizUrl,
-      performanceLabel,
       challengeLine,
-      passMark: passMarkProp,
       className,
     },
     ref,
   ) {
-    const passMark = Math.max(0, Math.min(100, passMarkProp ?? 60));
-    const resolvedPercent =
-      total > 0 ? percent ?? Math.round((score / total) * 100) : 0;
-    const passLabel = resolvedPercent >= passMark ? "Passed" : "Keep practicing";
+    const styles = themeStyles[theme];
+    const resolvedPercent = total > 0 ? percent ?? Math.round((score / total) * 100) : 0;
+    const elements = decorativeElements[theme];
+
+    const getAchievement = () => {
+      if (resolvedPercent >= 90) return { emoji: "🏆", label: "Outstanding!" };
+      if (resolvedPercent >= 70) return { emoji: "⭐", label: "Great Job!" };
+      if (resolvedPercent >= 50) return { emoji: "✨", label: "Well Done!" };
+      return { emoji: "🪄", label: "Keep Trying!" };
+    };
+
+    const achievement = getAchievement();
 
     return (
       <div
         ref={ref}
         className={cn(
-          // No fixed aspect + clip: 9/16 with overflow-hidden was cutting off bottom on mobile when content is taller than the box.
-          "relative mx-auto flex w-full max-w-[380px] flex-col gap-3 overflow-hidden rounded-3xl border p-4 shadow-xl sm:gap-4 sm:p-6",
-          themeShell[theme],
+          "relative mx-auto flex w-full max-w-[340px] flex-col items-center justify-center rounded-3xl border p-5 sm:p-7 shadow-2xl overflow-hidden",
+          styles.bg,
+          styles.border,
           className,
         )}
       >
         <div
           className={cn(
-            "pointer-events-none absolute -right-14 -top-14 h-40 w-40 rounded-full blur-2xl",
+            "absolute -right-20 -top-20 h-40 w-40 rounded-full blur-3xl",
             theme === "light"
-              ? "bg-amber-300/30"
+              ? "bg-amber-300/40"
               : theme === "dark"
-                ? "bg-violet-400/20"
-                : "bg-fuchsia-300/25",
+                ? "bg-amber-500/30"
+                : "bg-fuchsia-300/40",
           )}
           aria-hidden
         />
 
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-h-10 min-w-0 flex-1 shrink items-center pr-2">
-            <img
-              src={APP_LOGO_SRC}
-              alt={APP_NAME}
-              className="h-9 w-auto max-w-[min(100%,11rem)] object-contain object-left"
-              draggable={false}
-            />
-          </div>
-          <p
-            className={cn(
-              "text-right text-[10px] font-medium uppercase tracking-[0.18em] opacity-80",
-              theme === "light" ? "text-zinc-600" : "text-white/80",
-            )}
-          >
-            Quiz result
-          </p>
-        </div>
-
         <div
           className={cn(
-            "mt-4 rounded-2xl border px-3 py-2.5",
-            theme === "light" ? "border-zinc-300/70 bg-white/70" : "border-white/20 bg-white/10",
+            "absolute -left-16 -bottom-16 h-36 w-36 rounded-full blur-2xl",
+            theme === "light"
+              ? "bg-orange-300/40"
+              : theme === "dark"
+                ? "bg-violet-500/30"
+                : "bg-amber-300/40",
           )}
-        >
-          {quizUrl ? (
-            <a
-              href={quizUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-[10px] font-medium uppercase tracking-[0.18em] opacity-80 underline-offset-2 hover:underline"
-            >
-              {quizTitle ?? "Harry Potter Quiz"}
-            </a>
-          ) : (
-            <p className="text-[10px] font-medium uppercase tracking-[0.18em] opacity-75">
-              {quizTitle ?? "Harry Potter Quiz"}
-            </p>
-          )}
+          aria-hidden
+        />
+
+        {elements.map((el, i) => (
+          <el.icon key={i} className={el.className} strokeWidth={2.5} />
+        ))}
+
+        <div className="relative z-10 text-center">
           <p
             className={cn(
-              "mt-1 text-xs leading-relaxed",
-              theme === "light" ? "text-zinc-700" : "text-white/90",
+              "mb-1 font-display text-xs font-medium tracking-widest uppercase opacity-40",
+              styles.text,
             )}
           >
-            {challengeLine ?? "I scored high. Can you beat me?"}
+            {APP_NAME}
           </p>
-        </div>
 
+          <div className={cn("mb-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full", styles.iconBg)}>
+            <Wand2 className={cn("h-3.5 w-3.5", styles.accent)} />
+            <span className={cn("text-xs font-medium", styles.accent)}>
+              {achievement.label}
+            </span>
+          </div>
 
-
-        <div className="flex flex-col py-1">
           <p
             className={cn(
-              "font-display text-lg font-bold leading-snug sm:text-xl md:text-2xl",
-              theme === "fun" && "drop-shadow-sm",
+              "mb-3 font-display text-2xl sm:text-3xl font-bold leading-tight",
+              styles.text,
             )}
           >
             {headline}
           </p>
+
           <p
             className={cn(
-              "mt-3 text-sm leading-relaxed opacity-90",
-              theme === "light" ? "text-zinc-700" : "text-white/90",
+              "mb-4 text-sm font-medium leading-relaxed opacity-75",
+              styles.text,
             )}
           >
-            {tagline}
+            I scored <span className="font-bold">{score}/{total}</span> in {quizTitle ?? "the Quiz"}
           </p>
-        </div>
 
-        <div className="mt-1 grid grid-cols-2 gap-2 sm:mt-2 sm:py-1">
-          <div
-            className={cn(
-              "rounded-2xl border px-3 py-2",
-              theme === "light" ? "border-zinc-300/70 bg-white/70" : "border-white/20 bg-white/10",
-            )}
-          >
-            <p className="text-[9px] uppercase tracking-[0.2em] opacity-70">Accuracy</p>
-            <p className="mt-1 text-lg font-semibold tabular-nums">{resolvedPercent}%</p>
-          </div>
-          <div
-            className={cn(
-              "rounded-2xl border px-3 py-2",
-              theme === "light" ? "border-zinc-300/70 bg-white/70" : "border-white/20 bg-white/10",
-            )}
-          >
-            <p className="text-[9px] uppercase tracking-[0.2em] opacity-70">Rank</p>
-            <p className="mt-1 text-sm font-semibold">{performanceLabel ?? "Wizard"}</p>
-          </div>
-        </div>
-
-        <div className="space-y-1 text-center">
-          <p
-            className={cn(
-              "text-5xl leading-none font-bold tabular-nums tracking-tight font-display sm:text-6xl md:text-7xl",
-              theme === "fun" && "drop-shadow-md",
-            )}
-          >
-            {score}
-            <span
-              className={cn(
-                "text-2xl font-semibold opacity-80 sm:text-3xl",
-                theme === "light" ? "text-zinc-500" : "text-white/70",
-              )}
-            >
-              /{total}
-            </span>
-          </p>
-          <p
-            className={cn(
-              "text-xs font-medium uppercase tracking-widest opacity-75",
-              theme === "light" ? "text-zinc-500" : "text-white/75",
-            )}
-          >
-            Score
-          </p>
-        </div>
-
-        <div
-          className={cn(
-            "mt-4 rounded-2xl border px-3 py-3",
-            theme === "light" ? "border-zinc-300/70 bg-white/70" : "border-white/20 bg-white/10",
-          )}
-        >
-          <div className="flex items-center justify-between">
-            <p className="text-[10px] font-medium uppercase tracking-[0.18em] opacity-75">
-              Progress
-            </p>
-            <span
-              className={cn(
-                "rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                resolvedPercent >= passMark
-                  ? theme === "light"
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-emerald-400/20 text-emerald-200"
-                  : theme === "light"
-                    ? "bg-amber-100 text-amber-700"
-                    : "bg-amber-400/20 text-amber-200",
-              )}
-            >
-              {passLabel}
-            </span>
-          </div>
-
-          <div
-            className={cn(
-              "mt-2 h-2 w-full overflow-hidden rounded-full",
-              theme === "light" ? "bg-zinc-300/70" : "bg-white/20",
-            )}
-          >
+          <div className="mb-4 relative inline-flex">
             <div
               className={cn(
-                "h-full rounded-full transition-all duration-300",
-                theme === "light" ? "bg-zinc-900" : "bg-white",
+                "absolute inset-0 rounded-full blur-xl",
+                theme === "light"
+                  ? "bg-amber-400/30"
+                  : theme === "dark"
+                    ? "bg-amber-400/40"
+                    : "bg-white/30",
               )}
-              style={{ width: `${Math.max(0, Math.min(100, resolvedPercent))}%` }}
+            />
+            <div className={cn("relative px-6 py-3 rounded-full border", styles.border, styles.iconBg)}>
+              <p
+                className={cn(
+                  "font-display text-5xl sm:text-6xl font-black tracking-tight",
+                  styles.scoreColor,
+                )}
+              >
+                {resolvedPercent}%
+              </p>
+            </div>
+          </div>
+
+          <p
+            className={cn(
+              "mb-2 text-[10px] font-medium uppercase tracking-widest opacity-40",
+              styles.text,
+            )}
+          >
+            Accuracy
+          </p>
+
+          <div className={cn("w-full max-w-[180px] mx-auto mb-4 h-1.5 rounded-full bg-black/10 overflow-hidden")}>
+            <div
+              className={cn(
+                "h-full rounded-full",
+                theme === "fun" ? "bg-white" : "bg-amber-500",
+              )}
+              style={{ width: `${Math.min(100, resolvedPercent)}%` }}
             />
           </div>
-          <p
-            className={cn(
-              "mt-2 text-[11px] leading-relaxed",
-              theme === "light" ? "text-zinc-600" : "text-white/85",
-            )}
-          >
-            {score} correct out of {total} questions.
-          </p>
-          <p
-            className={cn(
-              "mt-1 text-[10px] tabular-nums opacity-60",
-              theme === "light" ? "text-zinc-600" : "text-white/75",
-            )}
-          >
-            Pass mark: {passMark}%
-          </p>
+
+          {challengeLine && (
+            <p
+              className={cn(
+                "text-sm font-semibold opacity-90",
+                styles.text,
+              )}
+            >
+              {challengeLine}
+            </p>
+          )}
         </div>
       </div>
     );
