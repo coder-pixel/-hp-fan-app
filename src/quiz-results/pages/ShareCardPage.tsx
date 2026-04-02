@@ -30,7 +30,7 @@ export interface ShareCardPageProps {
  */
 export function ShareCardPage({ data, config, onBack, className }: ShareCardPageProps) {
   const shareCardRef = useRef<HTMLDivElement>(null);
-  const { percent, performanceLabel, fullShareText, viralLine } = useResultData(data, config);
+  const { percent, fullShareText } = useResultData(data, config);
 
   const themeList = useMemo(() => {
     const t = config?.shareCard?.themes;
@@ -45,18 +45,13 @@ export function ShareCardPage({ data, config, onBack, className }: ShareCardPage
   );
 
   const headline = useMemo(
-    () => config?.shareCard?.headline ?? "Certified Potterhead 🪄",
+    () => config?.shareCard?.headline ?? "Certified Potterhead",
     [config?.shareCard?.headline],
   );
 
-  const tagline = useMemo(
-    () => config?.shareCard?.tagline ?? viralLine,
-    [config?.shareCard?.tagline, viralLine],
-  );
-
   const shareChallengeLine = useMemo(
-    () => config?.shareCard?.challengeLine ?? viralLine,
-    [config?.shareCard?.challengeLine, viralLine],
+    () => config?.shareCard?.challengeLine ?? "Can you beat my score?",
+    [config?.shareCard?.challengeLine],
   );
 
   const ss = config?.socialShare;
@@ -158,9 +153,6 @@ export function ShareCardPage({ data, config, onBack, className }: ShareCardPage
         </Button>
         <div className="min-w-0 flex-1">
           <h2 className="font-display text-lg font-semibold leading-tight sm:text-xl">Share card</h2>
-          <p className="text-xs text-muted-foreground font-body tabular-nums">
-            {data?.score}/{data?.total} correct · {percent}% · {performanceLabel}
-          </p>
         </div>
       </header>
 
@@ -170,15 +162,11 @@ export function ShareCardPage({ data, config, onBack, className }: ShareCardPage
             ref={shareCardRef}
             theme={theme}
             headline={headline}
-            tagline={tagline}
             score={data?.score}
             total={data?.total}
             percent={percent}
-            performanceLabel={performanceLabel}
             quizTitle={config?.quizTitle}
-            quizUrl={config?.shareUrl}
             challengeLine={shareChallengeLine}
-            passMark={config?.passMark}
           />
         </div>
 

@@ -1,7 +1,12 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { ActionButtons } from "../components/ActionButtons";
-import { PerformanceBadge } from "../components/PerformanceBadge";
+import { FeedbackForm } from "../components/FeedbackForm";
 import { ResultHeader } from "../components/ResultHeader";
 import { ScoreVisualizer } from "../components/ScoreVisualizer";
 import { useResultData } from "../hooks/useResultData";
@@ -24,24 +29,23 @@ export function ResultsPage({
   onShareCard,
   className,
 }: ResultsPageProps) {
-  const { percent, emotionalMessage, performanceLabel } = useResultData(data, config);
+  const { percent, emotionalMessage } = useResultData(data, config);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-      className={cn("w-full max-w-xl mx-auto space-y-8", className)}
+      className={cn("w-full max-w-xl mx-auto space-y-6", className)}
     >
-      <div className="p-6 space-y-8 sm:p-10 sm:glass-card">
+      <div className="p-5 sm:p-6 glass-card">
         <ResultHeader
           emotionalMessage={emotionalMessage}
           resultTag={config?.resultTag}
         />
 
-        <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-center sm:gap-10">
+        <div className="py-5">
           <ScoreVisualizer score={data?.score} total={data?.total} percent={percent} />
-          <PerformanceBadge label={performanceLabel ?? ""} percent={percent} className="sm:mt-4" />
         </div>
 
         <ActionButtons
@@ -49,6 +53,32 @@ export function ResultsPage({
           onReviewAnswers={onReviewAnswers}
           onShareCard={onShareCard}
         />
+
+        {config?.feedbackForm?.enabled !== false && (
+          <div className="mt-4 border-t border-border/40 pt-4">
+            <Dialog>
+              <p className="text-xs text-muted-foreground text-center">
+                Care to leave a feedback/suggestion?{" "}
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="font-medium text-accent underline underline-offset-4 decoration-accent/50 hover:decoration-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
+                  >
+                    Would really appreciate your help here
+                  </button>
+                </DialogTrigger>
+                .
+              </p>
+
+              <DialogContent className="p-0 border-0 bg-transparent shadow-none w-[92vw] max-w-lg sm:w-full">
+                <FeedbackForm
+                  title={config?.feedbackForm?.title}
+                  subtitle={config?.feedbackForm?.subtitle}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
       </div>
     </motion.div>
   );

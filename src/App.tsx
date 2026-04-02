@@ -7,6 +7,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ScrollToTop from "@/components/common/ScrollToTop";
 import AppRouter from "@/routes/AppRouter";
+import { ThemeProvider } from "@/theme";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
 
 const queryClient = new QueryClient();
 
@@ -25,15 +27,18 @@ function AnalyticsBootstrap() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AnalyticsBootstrap />
-        <ScrollToTop />
-        <AppRouter />
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider>
+      <ThemeToggle />
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AnalyticsBootstrap />
+          <ScrollToTop />
+          <AppRouter />
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
