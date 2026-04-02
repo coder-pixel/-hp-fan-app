@@ -10,9 +10,9 @@ interface QuizCardProps {
 }
 
 const difficultyColors: Record<string, string> = {
-  Easy: "bg-green-900/40 text-green-300 border-green-700/40",
+  Easy: "bg-green-500/20 text-green-700 border-green-500/30 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700/40",
   Medium: "bg-accent/15 text-accent border-accent/25",
-  Hard: "bg-red-900/40 text-red-300 border-red-700/40",
+  Hard: "bg-red-500/20 text-red-700 border-red-500/30 dark:bg-red-900/40 dark:text-red-300 dark:border-red-700/40",
 };
 
 const QuizCard = ({ quizId, title, description, questionCount, difficulty }: QuizCardProps) => {
@@ -37,7 +37,7 @@ const QuizCard = ({ quizId, title, description, questionCount, difficulty }: Qui
 
       <Link
         to={`/quiz/${quizId}`}
-        className="mt-auto w-full py-3 rounded-lg border font-semibold text-sm font-body text-center transition-all duration-300 border-secondary/25 bg-secondary/10 text-secondary-foreground hover:bg-secondary/25 hover:border-secondary/50 hover:glow-purple"
+        className="mt-auto w-full py-3 rounded-lg border font-semibold text-sm font-body text-center transition-all duration-300 bg-primary text-primary-foreground hover:bg-primary/90 dark:border-secondary/25 dark:bg-secondary/10 dark:text-secondary-foreground dark:hover:bg-secondary/25 dark:hover:border-secondary/50"
       >
         Play Quiz
       </Link>

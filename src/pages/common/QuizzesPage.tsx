@@ -14,9 +14,9 @@ const difficultyLabel: Record<string, string> = {
 };
 
 const badgeClassByDifficulty: Record<string, string> = {
-  easy: "bg-green-900/40 text-green-300 border-green-700/40",
+  easy: "bg-green-500/20 text-green-700 border-green-500/30 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700/40",
   medium: "bg-accent/15 text-accent border-accent/25",
-  hard: "bg-red-900/40 text-red-300 border-red-700/40",
+  hard: "bg-red-500/20 text-red-700 border-red-500/30 dark:bg-red-900/40 dark:text-red-300 dark:border-red-700/40",
 };
 
 const QuizzesPage = () => {
