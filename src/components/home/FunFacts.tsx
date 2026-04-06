@@ -138,7 +138,56 @@ const FunFacts = () => {
   };
 
   return (
-    <div className="glass-card p-6 sm:p-10 max-w-2xl mx-auto text-center relative overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="glass-card p-6 sm:p-10 max-w-2xl mx-auto text-center relative overflow-hidden"
+    >
+      {/* Subtle animated border glow */}
+      <motion.div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none"
+        animate={{ opacity: [0.45, 0.65, 0.45] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <div className="absolute inset-0 rounded-[inherit] ring-1 ring-accent/15" />
+        <div
+          className="absolute -inset-24 blur-3xl opacity-40"
+          style={{
+            background:
+              "radial-gradient(circle at 30% 40%, hsl(43 72% 52% / 0.25), transparent 55%), radial-gradient(circle at 70% 20%, hsl(210 70% 55% / 0.18), transparent 60%)",
+          }}
+        />
+      </motion.div>
+
+      {/* Floating sparkles */}
+      <motion.div
+        aria-hidden="true"
+        className="absolute left-6 top-8 text-accent/40"
+        animate={{ y: [0, -10, 0], opacity: [0.25, 0.6, 0.25] }}
+        transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Sparkles size={18} />
+      </motion.div>
+      <motion.div
+        aria-hidden="true"
+        className="absolute right-7 bottom-10 text-accent/30"
+        animate={{ y: [0, 12, 0], rotate: [0, 6, 0], opacity: [0.2, 0.5, 0.2] }}
+        transition={{ duration: 7.8, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Sparkles size={16} />
+      </motion.div>
+
+      {/* Shimmer sweep */}
+      <motion.div
+        aria-hidden="true"
+        className="absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none"
+        animate={{ x: ["-120%", "260%"] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
+      />
+
       {/* Decorative glow */}
       <div
         className="absolute -bottom-16 -left-16 w-36 h-36 rounded-full opacity-15 blur-3xl pointer-events-none"
@@ -195,28 +244,48 @@ const FunFacts = () => {
       ) : null}
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5">
-        <Button
+        <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
+          <Button
           type="button"
           onClick={generate}
           disabled={isLoading}
           className="btn-secondary-outline text-sm px-6 py-2.5"
-        >
-          <Sparkles size={15} className="animate-sparkle text-accent" />
-          {isLoading ? "Summoning..." : "Generate HP fact"}
-        </Button>
+          >
+            <motion.span
+              className="mr-2 inline-flex"
+              animate={isLoading ? { rotate: 360 } : { rotate: 0 }}
+              transition={
+                isLoading
+                  ? { duration: 1.1, repeat: Infinity, ease: "linear" }
+                  : { duration: 0.25 }
+              }
+            >
+              <Sparkles size={15} className="text-accent" />
+            </motion.span>
+            {isLoading ? "Summoning..." : "Generate HP fact"}
+          </Button>
+        </motion.div>
 
-        <Button
+        <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
+          <Button
           type="button"
           onClick={copy}
           variant="outline"
           disabled={!fact?.trim() || isLoading}
           className="text-sm px-4 py-2.5"
-        >
-          <Copy size={16} className={isCopying ? "opacity-70" : ""} />
-          {isCopying ? "Copied" : "Copy"}
-        </Button>
+          >
+            <motion.span
+              className="mr-2 inline-flex"
+              animate={isCopying ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+              transition={{ duration: 0.35 }}
+            >
+              <Copy size={16} className={isCopying ? "opacity-70" : ""} />
+            </motion.span>
+            {isCopying ? "Copied" : "Copy"}
+          </Button>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
