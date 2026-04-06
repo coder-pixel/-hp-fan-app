@@ -199,8 +199,8 @@ const QuizCard = ({
                   : isCorrect
                     ? "border-success/70 bg-gradient-to-br from-success/90 to-success text-success-foreground cursor-default"
                     : isWrong
-                      ? "border-destructive/70 bg-gradient-to-br from-destructive/85 to-destructive text-destructive-foreground cursor-default"
-                      : "border-border/25 bg-primary/25 text-primary-foreground/50 opacity-45 cursor-default pointer-events-none";
+                      ? "border-destructive/70 bg-gradient-to-br from-destructive/85 to-destructive text-white cursor-default"
+                      : "border-violet-400/30 bg-violet-500/15 text-violet-900 dark:bg-violet-400/15 dark:text-white/90 opacity-80 cursor-default pointer-events-none";
 
           const tileShadow =
             state === "idle" || state === "highlighted" || state === "lucky-idle"
