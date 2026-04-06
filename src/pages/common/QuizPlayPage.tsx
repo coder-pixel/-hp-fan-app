@@ -212,7 +212,7 @@ const QuizPlayInner = ({ quiz, autoStart }: { quiz: Quiz; autoStart?: boolean })
 
   if (status === "instructions") {
     return (
-      <div className="relative z-10 w-full max-w-6xl -mx-4 sm:mx-auto sm:max-w-6xl">
+      <div className="relative z-10 w-full max-w-6xl sm:mx-auto sm:max-w-6xl">
         {/* <div className="mb-8 flex w-full max-w-2xl flex-col items-center px-1">
           {quiz?.category ? (
             <span className="mb-3 block text-xs font-body font-medium uppercase tracking-widest text-accent/70">
