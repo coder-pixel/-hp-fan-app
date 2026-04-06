@@ -48,3 +48,24 @@ export function uniq<T>(arr: T[]): T[] {
   return Array.from(new Set(arr));
 }
 
+export async function fetchJsonWithTimeout<T>(
+  input: RequestInfo | URL,
+  init?: RequestInit & { timeoutMs?: number },
+): Promise<T> {
+  const timeoutMs = init?.timeoutMs ?? 8000;
+  const controller = new AbortController();
+  const id = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      throw new Error(`Request failed with status ${res.status}`);
+    }
+    return (await res.json()) as T;
+  } finally {
+    window.clearTimeout(id);
+  }
+}
+
