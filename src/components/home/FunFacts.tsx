@@ -1,63 +1,291 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Copy } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { fetchJsonWithTimeout } from "@/lib/helpers";
 
-const facts = [
-  "Dumbledore's full name is Albus Percival Wulfric Brian Dumbledore — over 10 words when you include his titles.",
-  "The first Harry Potter book was rejected 12 times before Bloomsbury finally published it.",
-  "Nearly Headless Nick required 45 swings of the axe, and still didn't get his head fully chopped off.",
-  "Voldemort cannot love because he was conceived under a love potion.",
-  "J.K. Rowling and Harry Potter share the same birthday: July 31st.",
-  "The Hogwarts motto 'Draco Dormiens Nunquam Titillandus' means 'Never Tickle a Sleeping Dragon.'",
-  "Dementors are based on J.K. Rowling's experience with depression.",
-  "Fred and George Weasley were born on April 1st — April Fools' Day.",
-];
+type HpApiCharacter = {
+  name: string;
+  house?: string;
+  ancestry?: string;
+  species?: string;
+  patronus?: string;
+  actor?: string;
+  alive?: boolean;
+  wizard?: boolean;
+};
+
+type HpApiSpell = {
+  name: string;
+  description?: string;
+};
+
+type HarryPotterFact = {
+  text: string;
+  meta?: string;
+};
 
 const FunFacts = () => {
   const [index, setIndex] = useState(0);
+  const [fact, setFact] = useState<string>("");
+  const [meta, setMeta] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const [error, setError] = useState<string>("");
 
-  const generate = () => {
-    let next: number;
-    do {
-      next = Math.floor(Math.random() * facts.length);
-    } while (next === index && facts.length > 1);
-    setIndex(next);
+  const [characters, setCharacters] = useState<HpApiCharacter[] | null>(null);
+  const [spells, setSpells] = useState<HpApiSpell[] | null>(null);
+
+  const subtitle = useMemo(() => {
+    return "Fresh Harry Potter lore, pulled from a free public API.";
+  }, []);
+
+  const pickRandom = <T,>(arr: T[]): T | undefined => {
+    if (!arr?.length) return undefined;
+    return arr[Math.floor(Math.random() * arr?.length)];
+  };
+
+  const characterToFacts = (c: HpApiCharacter): HarryPotterFact[] => {
+    const facts: HarryPotterFact[] = [];
+    const name = c?.name?.trim() ?? "";
+    if (!name) return facts;
+
+    if (c?.house) facts?.push({ text: `${name} is in ${c?.house}.`, meta: "Character" });
+    if (typeof c?.alive === "boolean")
+      facts?.push({
+        text: `${name} is ${c?.alive ? "alive" : "not alive"} in the story timeline.`,
+        meta: "Character",
+      });
+    if (c?.patronus) facts?.push({ text: `${name}'s Patronus is ${c?.patronus}.`, meta: "Character" });
+    if (c?.ancestry) facts?.push({ text: `${name}'s ancestry is listed as ${c?.ancestry}.`, meta: "Character" });
+    if (c?.species) facts?.push({ text: `${name}'s species is ${c?.species}.`, meta: "Character" });
+    if (c?.actor) facts?.push({ text: `${name} is portrayed by ${c?.actor}.`, meta: "Character" });
+    if (typeof c?.wizard === "boolean")
+      facts?.push({ text: `${name} is ${c?.wizard ? "a wizard/witch" : "not a wizard/witch"}.`, meta: "Character" });
+    return facts;
+  };
+
+  const generateOnline = async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const [charactersData, spellsData] = await Promise.all([
+        characters
+          ? Promise.resolve(characters)
+          : fetchJsonWithTimeout<HpApiCharacter[]>(
+            "https://hp-api.onrender.com/api/characters",
+            { timeoutMs: 8000 },
+          ),
+        spells
+          ? Promise.resolve(spells)
+          : fetchJsonWithTimeout<HpApiSpell[]>(
+            "https://hp-api.onrender.com/api/spells",
+            { timeoutMs: 8000 },
+          ),
+      ]);
+
+      if (!characters) setCharacters(charactersData);
+      if (!spells) setSpells(spellsData);
+
+      const candidateFacts: HarryPotterFact[] = [];
+      const c = pickRandom(charactersData);
+      if (c) candidateFacts.push(...characterToFacts(c));
+
+      const s = pickRandom(spellsData);
+      if (s?.name?.trim()) {
+        candidateFacts.push({
+          text: s.description?.trim()
+            ? `Spell: ${s.name} — ${s.description.trim()}`
+            : `Spell: ${s.name}`,
+          meta: "Spell",
+        });
+      }
+
+      const picked = pickRandom(candidateFacts);
+      if (!picked?.text?.trim()) {
+        setError("Couldn’t fetch a fact right now. Please try again.");
+        setFact("");
+        setMeta("");
+        return;
+      }
+
+      setIndex((v) => v + 1);
+      setFact(picked.text);
+      setMeta(picked.meta ?? "");
+    } catch {
+      setError("Couldn’t fetch a fact right now. Please try again.");
+      setFact("");
+      setMeta("");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generate = async () => {
+    await generateOnline();
+  };
+
+  const copy = async () => {
+    if (!fact?.trim()) return;
+    setIsCopying(true);
+    try {
+      await navigator.clipboard.writeText(fact.trim());
+    } catch {
+      // no-op (clipboard may be blocked)
+    } finally {
+      window.setTimeout(() => setIsCopying(false), 550);
+    }
   };
 
   return (
-    <div className="glass-card p-8 sm:p-10 max-w-lg mx-auto text-center relative overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="glass-card p-6 sm:p-10 max-w-2xl mx-auto text-center relative overflow-hidden"
+    >
+      {/* Subtle animated border glow */}
+      <motion.div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none"
+        animate={{ opacity: [0.45, 0.65, 0.45] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <div className="absolute inset-0 rounded-[inherit] ring-1 ring-accent/15" />
+        <div
+          className="absolute -inset-24 blur-3xl opacity-40"
+          style={{
+            background:
+              "radial-gradient(circle at 30% 40%, hsl(43 72% 52% / 0.25), transparent 55%), radial-gradient(circle at 70% 20%, hsl(210 70% 55% / 0.18), transparent 60%)",
+          }}
+        />
+      </motion.div>
+
+      {/* Floating sparkles */}
+      <motion.div
+        aria-hidden="true"
+        className="absolute left-6 top-8 text-accent/40"
+        animate={{ y: [0, -10, 0], opacity: [0.25, 0.6, 0.25] }}
+        transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Sparkles size={18} />
+      </motion.div>
+      <motion.div
+        aria-hidden="true"
+        className="absolute right-7 bottom-10 text-accent/30"
+        animate={{ y: [0, 12, 0], rotate: [0, 6, 0], opacity: [0.2, 0.5, 0.2] }}
+        transition={{ duration: 7.8, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Sparkles size={16} />
+      </motion.div>
+
+      {/* Shimmer sweep */}
+      <motion.div
+        aria-hidden="true"
+        className="absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none"
+        animate={{ x: ["-120%", "260%"] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
+      />
+
       {/* Decorative glow */}
-      <div className="absolute -bottom-16 -left-16 w-32 h-32 rounded-full opacity-15 blur-3xl pointer-events-none"
-        style={{ background: "radial-gradient(circle, hsl(43 72% 52%), transparent)" }} />
+      <div
+        className="absolute -bottom-16 -left-16 w-36 h-36 rounded-full opacity-15 blur-3xl pointer-events-none"
+        style={{
+          background: "radial-gradient(circle, hsl(43 72% 52%), transparent)",
+        }}
+      />
+      <div
+        className="absolute -top-16 -right-16 w-40 h-40 rounded-full opacity-10 blur-3xl pointer-events-none"
+        style={{
+          background: "radial-gradient(circle, hsl(210 70% 55%), transparent)",
+        }}
+      />
 
       <span className="inline-block text-xs font-body font-medium tracking-widest uppercase text-accent/70 mb-4">
-        Wizarding Lore
+        Fun facts generator
       </span>
-      <h3 className="font-display text-xl sm:text-2xl font-semibold mb-8">Random Wizarding Fact</h3>
+      <h3 className="font-display text-xl sm:text-3xl font-semibold">
+        A tiny burst of <span className="text-gradient-gold">magic</span>
+      </h3>
+      <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
+        {subtitle}
+      </p>
 
-      <div className="min-h-[120px] flex items-center justify-center mb-8 px-2">
+      <div className="mt-7 sm:mt-8 min-h-[132px] flex items-center justify-center mb-6 px-2">
         <AnimatePresence mode="wait">
           <motion.p
-            key={index}
+            key={`${index}:${fact}:${meta}:${error}`}
             initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
             transition={{ duration: 0.45 }}
-            className="text-foreground/85 font-body leading-relaxed text-sm sm:text-base"
+            className="text-foreground/90 font-body leading-relaxed text-sm sm:text-base"
           >
-            {facts[index]}
+            {error ? (
+              <span className="text-destructive/90">{error}</span>
+            ) : fact ? (
+              fact
+            ) : (
+              <span className="text-muted-foreground">
+                Tap generate to fetch a Harry Potter fact.
+              </span>
+            )}
           </motion.p>
         </AnimatePresence>
       </div>
 
-      <button
-        onClick={generate}
-        className="inline-flex items-center gap-2 btn-secondary-outline text-sm px-6 py-2.5"
-      >
-        <Sparkles size={15} className="animate-sparkle text-accent" />
-        Generate New Fact
-      </button>
-    </div>
+      {meta ? (
+        <div className="-mt-2 mb-5">
+          <span className="inline-flex items-center rounded-full border border-border/40 bg-muted/20 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+            {meta}
+          </span>
+        </div>
+      ) : null}
+
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5">
+        <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
+          <Button
+          type="button"
+          onClick={generate}
+          disabled={isLoading}
+          className="btn-secondary-outline text-sm px-6 py-2.5"
+          >
+            <motion.span
+              className="mr-2 inline-flex"
+              animate={isLoading ? { rotate: 360 } : { rotate: 0 }}
+              transition={
+                isLoading
+                  ? { duration: 1.1, repeat: Infinity, ease: "linear" }
+                  : { duration: 0.25 }
+              }
+            >
+              <Sparkles size={15} className="text-accent" />
+            </motion.span>
+            {isLoading ? "Summoning..." : "Generate HP fact"}
+          </Button>
+        </motion.div>
+
+        <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
+          <Button
+          type="button"
+          onClick={copy}
+          variant="outline"
+          disabled={!fact?.trim() || isLoading}
+          className="text-sm px-4 py-2.5"
+          >
+            <motion.span
+              className="mr-2 inline-flex"
+              animate={isCopying ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+              transition={{ duration: 0.35 }}
+            >
+              <Copy size={16} className={isCopying ? "opacity-70" : ""} />
+            </motion.span>
+            {isCopying ? "Copied" : "Copy"}
+          </Button>
+        </motion.div>
+      </div>
+    </motion.div>
   );
 };
 

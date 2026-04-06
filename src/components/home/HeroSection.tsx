@@ -90,9 +90,9 @@ const HeroSection = () => {
           <Link to="/quizzes" className="btn-primary-gold text-base">
             Take a Quiz
           </Link>
-          <a href="#quizzes" className="btn-secondary-outline text-base">
+          {/* <a href="#quizzes" className="btn-secondary-outline text-base">
             Featured quizzes
-          </a>
+          </a> */}
         </motion.div>
       </div>
 

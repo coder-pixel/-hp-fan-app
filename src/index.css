@@ -65,7 +65,7 @@
 
     /** Accent — warm gold, highlights & score display */
     --accent: 43 72% 52%;
-    --accent-foreground: 0 0% 2%;
+    --accent-foreground: 0 0% 98%;
 
     /** Destructive — red, errors & wrong answers */
     --destructive: 0 84.2% 60.2%;
@@ -447,12 +447,16 @@
   }
 
   html {
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
   }
 
   body {
     @apply bg-background text-foreground font-body antialiased;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
   }
 
   h1,
@@ -571,7 +575,8 @@
   }
 
   @keyframes felix-pulse {
-    0%, 100% {
+    0%,
+    100% {
       box-shadow:
         0 0 18px hsla(43, 92%, 52%, 0.18),
         0 0 40px hsla(43, 92%, 52%, 0.08);
@@ -592,9 +597,15 @@
   }
 
   @keyframes felix-retry {
-    0%   { box-shadow: 0 0 0 0 hsla(43, 92%, 52%, 0); }
-    30%  { box-shadow: 0 0 36px 6px hsla(43, 92%, 52%, 0.35); }
-    100% { box-shadow: 0 0 10px 0 hsla(43, 92%, 52%, 0); }
+    0% {
+      box-shadow: 0 0 0 0 hsla(43, 92%, 52%, 0);
+    }
+    30% {
+      box-shadow: 0 0 36px 6px hsla(43, 92%, 52%, 0.35);
+    }
+    100% {
+      box-shadow: 0 0 10px 0 hsla(43, 92%, 52%, 0);
+    }
   }
 
   /**

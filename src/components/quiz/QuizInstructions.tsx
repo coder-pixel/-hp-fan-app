@@ -57,7 +57,7 @@ const QuizInstructions = ({
         "lg:bg-transparent lg:border-0 lg:shadow-none",
       ].join(" ")}
     >
-      <div className="px-4 py-4 sm:p-6 sm:px-6 lg:p-0">
+      <div className="px-4 py-4 sm:p-6 sm:px-6">
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)] lg:items-start lg:gap-10">
           {/* Left: content — centered on mobile/tablet, left column on lg */}
           <div className="text-center lg:py-10 lg:text-left">
