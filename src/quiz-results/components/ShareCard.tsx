@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { Star, Sparkles, Wand2 } from "lucide-react";
+import { Star, Sparkles, Wand2, Coffee } from "lucide-react";
 import { APP_NAME } from "@/config/appBranding";
 import type { ShareCardTheme } from "../types/result.types";
 import { cn } from "@/lib/utils";
@@ -210,6 +210,21 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
               )}
               style={{ width: `${Math.min(100, resolvedPercent)}%` }}
             />
+          </div>
+
+          <div className={cn("mb-4 p-2 rounded-lg", styles.iconBg)}>
+            <a
+              href="https://www.buymeacoffee.com/yourusername" // Replace with actual Buy Me a Coffee link
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                "flex items-center justify-center gap-1.5 text-xs font-medium transition-opacity hover:opacity-80",
+                styles.accent
+              )}
+            >
+              <Coffee size={14} />
+              Support the magic ☕
+            </a>
           </div>
 
           {challengeLine && (
