@@ -9,6 +9,7 @@ import { ActionButtons } from "../components/ActionButtons";
 import { FeedbackForm } from "../components/FeedbackForm";
 import { ResultHeader } from "../components/ResultHeader";
 import { ScoreVisualizer } from "../components/ScoreVisualizer";
+import { SupportCTA } from "../components/SupportCTA";
 import { useResultData } from "../hooks/useResultData";
 import type { QuizResultsUiConfig, ResultData } from "../types/result.types";
 
@@ -54,8 +55,13 @@ export function ResultsPage({
           onShareCard={onShareCard}
         />
 
+        <div className="mt-8">
+          <div className="section-divider mb-6" />
+          <SupportCTA />
+        </div>
+
         {config?.feedbackForm?.enabled !== false && (
-          <div className="mt-4 border-t border-border/40 pt-4">
+          <div className="mt-6 border-t border-border/40 pt-4">
             <Dialog>
               <p className="text-xs text-muted-foreground text-center">
                 Care to leave a feedback/suggestion?{" "}

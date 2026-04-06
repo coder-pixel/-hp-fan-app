@@ -13,6 +13,7 @@ export { ResultHeader } from "./components/ResultHeader";
 export { ScoreVisualizer } from "./components/ScoreVisualizer";
 export { PerformanceBadge } from "./components/PerformanceBadge";
 export { ActionButtons } from "./components/ActionButtons";
+export { SupportCTA } from "./components/SupportCTA";
 export { ShareCard } from "./components/ShareCard";
 export { AnswerItem } from "./components/AnswerItem";
 
