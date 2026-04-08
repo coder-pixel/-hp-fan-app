@@ -1,5 +1,6 @@
 import type { AppRoute } from "@/routes/routeMeta";
 import Index from "@/pages/common/Index";
+import AboutPage from "@/pages/common/AboutPage";
 import QuizPlayPage from "@/pages/common/QuizPlayPage";
 import QuizzesPage from "@/pages/common/QuizzesPage";
 import ThisOrThatPage from "@/pages/common/ThisOrThatPage";
@@ -16,6 +17,7 @@ import ProfilePage from "@/pages/protected/user-module/ProfilePage";
 export const appRoutes: AppRoute[] = [
   // common
   { path: "/", component: Index, type: "common" },
+  { path: "/about", component: AboutPage, type: "common" },
   { path: "/quiz/:id", component: QuizPlayPage, type: "common" },
   { path: "/quizzes", component: QuizzesPage, type: "common" },
   { path: "/this-or-that", component: ThisOrThatPage, type: "common" },

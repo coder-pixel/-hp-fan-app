@@ -1,9 +1,9 @@
 import { APP_LOGO_SRC, APP_NAME } from "@/config/appBranding";
 
 const footerLinks = [
-  { label: "Home", href: "#" },
-  { label: "Quizzes", href: "#quizzes" },
-  { label: "About", href: "#about" },
+  { label: "Home", href: "/" },
+  { label: "Quizzes", href: "/quizzes" },
+  { label: "About", href: "/about" },
 ];
 
 const Footer = () => {
@@ -29,25 +29,25 @@ const Footer = () => {
           </div>
 
           <div className="flex items-center gap-8">
-            {footerLinks.map((link) => (
+            {footerLinks?.map((link) => (
               <a
-                key={link.label}
-                href={link.href}
+                key={link?.label}
+                href={link?.href}
                 className="text-sm text-muted-foreground hover:text-accent transition-colors duration-300"
               >
-                {link.label}
+                {link?.label}
               </a>
             ))}
           </div>
 
           {/* Social placeholders */}
           <div className="flex items-center gap-3">
-            {["Twitter", "Instagram", "YouTube"].map((name) => (
+            {["Twitter", "Instagram", "YouTube"]?.map((name) => (
               <div
                 key={name}
                 className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center text-xs text-muted-foreground hover:border-accent/60 hover:text-accent transition-all duration-300 cursor-pointer hover:bg-accent/5"
               >
-                {name[0]}
+                {name?.[0]}
               </div>
             ))}
           </div>

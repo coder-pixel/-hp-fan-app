@@ -9,6 +9,7 @@ const navLinks = [
   // { label: "Quiz", href: "/quiz" },
   // { label: "This or That", href: "/this-or-that" },
   { label: "Quizzes", href: "/quizzes" },
+  { label: "About", href: "/about" },
   // { label: "Dashboard", href: "/dashboard" },
   // { label: "Saved", href: "/saved" },
   // { label: "Polls", href: "/#polls" },
