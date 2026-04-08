@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, X } from "lucide-react";
+import { ArrowRight, Layers3, Search, Sparkles, Tag, X } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import MagicalParticles from "@/components/quiz/MagicalParticles";
@@ -259,19 +259,26 @@ export const QuizCard = ({ quiz, diffKey, diffText }: { quiz: Quiz; diffKey: Qui
   return (
     <motion.div
       key={quiz.id}
-      whileHover={{ y: -6 }}
+      whileHover={{ y: -6, scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
-      className="glass-card-hover p-7 flex flex-col gap-5"
+      className="group glass-card-hover p-7 flex flex-col gap-5 ring-1 ring-transparent hover:ring-accent/20 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/20"
     >
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
-          {/* <Badge
+          <Badge
             variant="outline"
-            className={badgeClassByDifficulty?.[diffKey] ?? ""}
+            className={[
+              "gap-1.5 font-body text-[11px] leading-none",
+              badgeClassByDifficulty?.[diffKey] ?? "",
+            ].join(" ")}
           >
+            <Sparkles className="h-3.5 w-3.5" />
             {diffText}
-          </Badge> */}
-          <span className="text-[11px] text-muted-foreground font-body">
+          </Badge>
+
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground font-body">
+            <Layers3 className="h-3.5 w-3.5" />
             {quiz?.questions?.length} questions
           </span>
         </div>
@@ -280,14 +287,18 @@ export const QuizCard = ({ quiz, diffKey, diffText }: { quiz: Quiz; diffKey: Qui
           <h3 className="font-display text-lg font-semibold leading-snug">
             {quiz?.title}
           </h3>
-          <p className="text-sm text-muted-foreground font-body">
-            Category: {quiz?.category}
+          <p className="inline-flex items-center gap-2 text-sm text-muted-foreground font-body">
+            <Tag className="h-4 w-4" />
+            <span>Category: {quiz?.category}</span>
           </p>
         </div>
 
         {/* This is just listing for now; wire to a play route when ready. */}
         <Button asChild className="mt-auto">
-          <Link to={`/quiz/${quiz?.id}`}>Play</Link>
+          <Link to={`/quiz/${quiz?.id}`} className="inline-flex items-center justify-center gap-2">
+            <span>Play</span>
+            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+          </Link>
         </Button>
       </div>
     </motion.div>
