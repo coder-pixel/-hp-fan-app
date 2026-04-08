@@ -1,4 +1,4 @@
-import { APP_LOGO_SRC, APP_NAME } from "@/config/appBranding";
+import { APP_LOGO_SRC, APP_NAME } from "@/config";
 
 const footerLinks = [
   { label: "Home", href: "/" },
