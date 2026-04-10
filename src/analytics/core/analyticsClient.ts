@@ -19,7 +19,7 @@
  */
 
 import ReactGA from "react-ga4";
-import { analyticsConfig } from "../config/analyticsConfig";
+import { analyticsConfig } from "@/config";
 
 let clientInitialized = false;
 

@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext } from "react";
 import { ThemeName, ThemeContextValue } from "./theme.types";
 import { STORAGE_KEY } from "./theme.constants";
+import { DEFAULT_THEME } from "@/config";
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
@@ -17,13 +18,13 @@ export const getInitialTheme = (): ThemeName => {
   if (stored === "light" || stored === "dark") {
     return stored;
   }
-  
+
   if (typeof window !== "undefined" && window.matchMedia) {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     return prefersDark ? "dark" : "light";
   }
-  
-  return "dark";
+
+  return DEFAULT_THEME;
 };
 
 export { ThemeContext };

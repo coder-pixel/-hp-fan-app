@@ -1,9 +1,10 @@
-import { APP_LOGO_SRC, APP_NAME } from "@/config/appBranding";
+import { APP_LOGO_SRC, APP_NAME } from "@/config";
+import { ContributorCTA } from "@/components/common/ContributorCTA";
 
 const footerLinks = [
-  { label: "Home", href: "#" },
-  { label: "Quizzes", href: "#quizzes" },
-  { label: "About", href: "#about" },
+  { label: "Home", href: "/" },
+  { label: "Quizzes", href: "/quizzes" },
+  { label: "About", href: "/about" },
 ];
 
 const Footer = () => {
@@ -28,26 +29,29 @@ const Footer = () => {
             </h3>
           </div>
 
-          <div className="flex items-center gap-8">
-            {footerLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="text-sm text-muted-foreground hover:text-accent transition-colors duration-300"
-              >
-                {link.label}
-              </a>
-            ))}
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center gap-8">
+              {footerLinks?.map((link) => (
+                <a
+                  key={link?.label}
+                  href={link?.href}
+                  className="text-sm text-muted-foreground hover:text-accent transition-colors duration-300"
+                >
+                  {link?.label}
+                </a>
+              ))}
+            </div>
+            <ContributorCTA variant="inline" className="text-center" />
           </div>
 
           {/* Social placeholders */}
           <div className="flex items-center gap-3">
-            {["Twitter", "Instagram", "YouTube"].map((name) => (
+            {["Twitter", "Instagram", "YouTube"]?.map((name) => (
               <div
                 key={name}
                 className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center text-xs text-muted-foreground hover:border-accent/60 hover:text-accent transition-all duration-300 cursor-pointer hover:bg-accent/5"
               >
-                {name[0]}
+                {name?.[0]}
               </div>
             ))}
           </div>

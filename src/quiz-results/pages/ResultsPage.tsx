@@ -12,6 +12,7 @@ import { ScoreVisualizer } from "../components/ScoreVisualizer";
 import { SupportCTA } from "../components/SupportCTA";
 import { useResultData } from "../hooks/useResultData";
 import type { QuizResultsUiConfig, ResultData } from "../types/result.types";
+import { ContributorCTA } from "@/components/common/ContributorCTA";
 
 export interface ResultsPageProps {
   data: ResultData;
@@ -59,6 +60,8 @@ export function ResultsPage({
           <div className="section-divider mb-6" />
           <SupportCTA />
         </div>
+
+        <ContributorCTA variant="default" className="mt-6" />
 
         {config?.feedbackForm?.enabled !== false && (
           <div className="mt-6 border-t border-border/40 pt-4">

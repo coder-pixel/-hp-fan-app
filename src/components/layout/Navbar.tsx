@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { APP_LOGO_SRC, APP_NAME } from "@/config/appBranding";
+import { APP_LOGO_SRC, APP_NAME } from "@/config";
 
 const navLinks = [
   // { label: "Home", href: "/" },
   // { label: "Quiz", href: "/quiz" },
   // { label: "This or That", href: "/this-or-that" },
   { label: "Quizzes", href: "/quizzes" },
+  { label: "About", href: "/about" },
   // { label: "Dashboard", href: "/dashboard" },
   // { label: "Saved", href: "/saved" },
   // { label: "Polls", href: "/#polls" },
