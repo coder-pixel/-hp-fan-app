@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import MagicalParticles from "@/components/quiz/MagicalParticles";
 import { SupportCTA } from "@/components/common/SupportCTA";
 import { FeedbackForm } from "@/components/common/FeedbackForm";
+import { ContributorCTA } from "@/components/common/ContributorCTA";
 
 const COPY = {
   hero: {
@@ -100,11 +101,11 @@ const AboutPage = () => {
             </span>
             <h1 className="font-display text-3xl sm:text-5xl font-bold">
               <span className="text-gradient-gold drop-shadow-[0_8px_22px_rgba(255,196,59,0.12)]">
-                {COPY.hero.title}
+                {COPY?.hero?.title}
               </span>
             </h1>
             <p className="text-muted-foreground font-body text-sm sm:text-lg max-w-2xl mx-auto">
-              {COPY.hero.subtitle}
+              {COPY?.hero?.subtitle}
             </p>
           </motion.div>
 
@@ -116,8 +117,8 @@ const AboutPage = () => {
               viewport={{ once: true, margin: "-120px" }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
-              <Section title={COPY.why.heading}>
-                <Paragraph text={COPY.why.body} />
+              <Section title={COPY?.why?.heading}>
+                <Paragraph text={COPY?.why?.body} />
               </Section>
             </motion.div>
 
@@ -130,13 +131,13 @@ const AboutPage = () => {
               viewport={{ once: true, margin: "-120px" }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
-              <Section title={COPY.special.heading}>
+              <Section title={COPY?.special?.heading}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 pt-1">
-                  {COPY.special.points.map((p) => {
-                    const Icon = p.icon;
+                  {COPY?.special?.points?.map((p) => {
+                    const Icon = p?.icon;
                     return (
                       <div
-                        key={p.title}
+                        key={p?.title ?? ""}
                         className="glass-card-hover p-5 rounded-2xl ring-1 ring-transparent hover:ring-accent/15 transition-colors"
                       >
                         <div className="flex items-start gap-3">
@@ -145,10 +146,10 @@ const AboutPage = () => {
                           </div>
                           <div className="space-y-1">
                             <p className="font-display font-semibold text-base leading-snug">
-                              {p.description}
+                              {p?.description ?? ""}
                             </p>
                             <p className="text-sm text-muted-foreground font-body">
-                              {p.title}
+                              {p?.title ?? ""}
                             </p>
                           </div>
                         </div>
@@ -168,10 +169,12 @@ const AboutPage = () => {
               viewport={{ once: true, margin: "-120px" }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
-              <Section title={COPY.future.heading}>
-                <Paragraph text={COPY.future.body} />
+              <Section title={COPY?.future?.heading}>
+                <Paragraph text={COPY?.future?.body} />
               </Section>
             </motion.div>
+
+
 
             <div className="section-divider max-w-xs mx-auto" />
 
@@ -183,11 +186,13 @@ const AboutPage = () => {
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-6"
             >
-              <Section title={COPY.creator.heading}>
-                <Paragraph text={COPY.creator.body} />
+              <Section title={COPY?.creator?.heading}>
+                <Paragraph text={COPY?.creator?.body} />
               </Section>
 
               <SupportCTA variant="subtle" />
+
+              <ContributorCTA variant="default" className="mt-6" />
             </motion.div>
 
             <div className="section-divider max-w-xs mx-auto" />

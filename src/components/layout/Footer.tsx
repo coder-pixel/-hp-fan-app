@@ -1,4 +1,5 @@
 import { APP_LOGO_SRC, APP_NAME } from "@/config";
+import { ContributorCTA } from "@/components/common/ContributorCTA";
 
 const footerLinks = [
   { label: "Home", href: "/" },
@@ -28,16 +29,19 @@ const Footer = () => {
             </h3>
           </div>
 
-          <div className="flex items-center gap-8">
-            {footerLinks?.map((link) => (
-              <a
-                key={link?.label}
-                href={link?.href}
-                className="text-sm text-muted-foreground hover:text-accent transition-colors duration-300"
-              >
-                {link?.label}
-              </a>
-            ))}
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center gap-8">
+              {footerLinks?.map((link) => (
+                <a
+                  key={link?.label}
+                  href={link?.href}
+                  className="text-sm text-muted-foreground hover:text-accent transition-colors duration-300"
+                >
+                  {link?.label}
+                </a>
+              ))}
+            </div>
+            <ContributorCTA variant="inline" className="text-center" />
           </div>
 
           {/* Social placeholders */}

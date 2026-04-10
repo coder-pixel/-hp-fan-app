@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { PaginationControl } from "@/components/common/PaginationControl";
 import { Quiz, QuizDifficulty } from "@/types/quiz";
+import { ContributorCTA } from "@/components/common/ContributorCTA";
 
 const difficultyLabel: Record<string, string> = {
   easy: "Easy",
@@ -244,6 +245,8 @@ const QuizzesPage = () => {
 
             <PaginationControl page={Math.min(page, pageCount)} pageCount={pageCount} onPageChange={setPage} />
           </div>
+
+          <ContributorCTA variant="compact" className="mt-6" />
         </div>
       </main>
       <Footer />
