@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { Star, Sparkles, Wand2, Coffee } from "lucide-react";
-import { APP_NAME } from "@/config/appBranding";
+import { APP_NAME } from "@/config";
 import type { ShareCardTheme } from "../types/result.types";
 import { cn } from "@/lib/utils";
 

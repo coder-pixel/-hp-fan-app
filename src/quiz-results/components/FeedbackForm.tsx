@@ -6,14 +6,13 @@ import { blockNonAlphanumericSpaceKeyDown } from "@/lib/helpers";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { SUPPORT_EMAIL, WEB3FORMS_ACCESS_KEY } from "@/config";
 
 export interface FeedbackFormProps {
   className?: string;
   title?: string;
   subtitle?: string;
 }
-
-const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
 
 export function FeedbackForm({
   className,
@@ -108,8 +107,8 @@ export function FeedbackForm({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          access_key: WEB3FORMS_ACCESS_KEY,
-          to: "potterwiki07@gmail.com",
+          access_key: WEB3FORMS_ACCESS_KEY ?? "",
+          to: SUPPORT_EMAIL,
           subject: "New Feedback from Potter Wiki App",
           from_name: formFields?.userName ?? "Potter Wiki User",
           message: formFields?.message,
@@ -157,7 +156,7 @@ export function FeedbackForm({
     );
   }
 
-  if (!WEB3FORMS_ACCESS_KEY) {
+  if (!WEB3FORMS_ACCESS_KEY || WEB3FORMS_ACCESS_KEY?.length === 0) {
     return null;
     // <div className={cn("glass-card p-4 sm:p-5 text-center", className)}>
     //   <div className="mb-4">
