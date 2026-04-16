@@ -271,7 +271,7 @@ const QuizPlayInner = ({ quiz, autoStart }: { quiz: Quiz; autoStart?: boolean })
                 onReviewAnswers={() => setFinishedPanel("review")}
                 onShareCard={() => setFinishedPanel("share")}
               />
-              <NextQuizCard />
+              <NextQuizCard currentQuizId={quiz?.id} />
             </>
           )}
         </>
