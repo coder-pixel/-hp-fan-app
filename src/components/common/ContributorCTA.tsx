@@ -12,7 +12,7 @@ const COPY = {
   title: "Be Part of the Magic 🪄",
   description:
     "Love Harry Potter as much as we do?\n\nYou can contribute your own questions, quizzes, and ideas to help grow this platform into something truly magical.\n\nLet’s build this together ⚡",
-  cta: "✨ Contribute on Instagram",
+  cta: "✨ Contribute",
   helper: "DM your quiz ideas or questions directly 💬",
 } as const;
 
@@ -81,34 +81,52 @@ export function ContributorCTA({
       />
 
       <div className="relative rounded-2xl bg-card/55 backdrop-blur-sm ring-1 ring-border/40">
-        <div className={cn(isCompact ? "p-4" : "p-5")}>
-          <div className={cn("flex items-start gap-3", isCompact ? "sm:items-center" : "")}>
-            <div className="mt-0.5 h-10 w-10 shrink-0 rounded-xl bg-accent/10 text-accent ring-1 ring-accent/20 flex items-center justify-center">
+        <div className={cn(isCompact ? "p-4" : "p-4 sm:p-5")}>
+          <div
+            className={cn(
+              "flex flex-col items-center gap-3 text-center sm:flex-row sm:items-start sm:text-left",
+              isCompact ? "sm:items-center" : "",
+            )}
+          >
+            <div className="h-10 w-10 shrink-0 rounded-xl bg-accent/10 text-accent ring-1 ring-accent/20 flex items-center justify-center">
               <Sparkles className="h-5 w-5" aria-hidden />
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className={cn("font-display font-bold", isCompact ? "text-base" : "text-lg")}>
-                {COPY.title}
+              <p
+                className={cn(
+                  "font-display font-bold",
+                  isCompact ? "text-base" : "text-base sm:text-lg",
+                )}
+              >
+                {COPY?.title}
               </p>
               <p
                 className={cn(
-                  "mt-2 text-sm text-muted-foreground font-body leading-relaxed whitespace-pre-line",
+                  "mt-2 text-sm text-muted-foreground font-body leading-relaxed whitespace-normal sm:whitespace-pre-line",
                   isCompact ? "line-clamp-1 sm:line-clamp-2" : "",
                 )}
               >
-                {COPY.description}
+                {COPY?.description}
               </p>
             </div>
           </div>
 
-          <div className={cn("mt-4 flex items-center justify-start", isCompact ? "sm:justify-end" : "")}>
-            <motion.div whileHover={prefersReducedMotion ? undefined : { scale: 1.03 }}>
+          <div
+            className={cn(
+              "mt-3 flex items-center justify-center"
+            )}
+          >
+
+            <motion.div
+              whileHover={prefersReducedMotion ? undefined : { scale: 1.03 }}
+              className="w-full sm:w-auto"
+            >
               <Button
                 type="button"
                 onClick={onContribute}
                 className={cn(
-                  "rounded-xl font-semibold text-white/95",
+                  "w-full sm:w-auto rounded-xl font-semibold text-white/95",
                   isCompact ? "h-10 px-4 text-sm" : "h-11 px-5 text-sm",
                   // Premium + subtle: dark gradient, thin ring, restrained glow
                   "bg-[linear-gradient(135deg,rgba(33,12,58,0.95),rgba(66,22,110,0.85),rgba(17,14,34,0.95))]",
@@ -117,16 +135,16 @@ export function ContributorCTA({
                   "hover:brightness-[1.06] active:brightness-[0.98]",
                 )}
               >
-                <span className="inline-flex items-center gap-2">
+                <span className="flex w-full flex-wrap items-center justify-center gap-2 whitespace-normal text-center">
+                  <span>{COPY?.cta}</span>
                   <Instagram className="h-4 w-4 text-white/85" aria-hidden />
-                  <span>{COPY.cta}</span>
                 </span>
               </Button>
             </motion.div>
           </div>
 
           <p className="mt-2 text-center text-xs text-muted-foreground/70 font-body">
-            {COPY.helper}
+            {COPY?.helper}
           </p>
         </div>
       </div>

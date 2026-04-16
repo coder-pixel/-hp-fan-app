@@ -61,7 +61,7 @@ export function ResultsPage({
           <SupportCTA />
         </div>
 
-        <ContributorCTA variant="default" className="mt-6" />
+        <ContributorCTA variant="default" className="mt-3 sm:mt-4" />
 
         {config?.feedbackForm?.enabled !== false && (
           <div className="mt-6 border-t border-border/40 pt-4">
