@@ -310,6 +310,18 @@ const QuizPlayInner = ({ quiz, autoStart }: { quiz: Quiz; autoStart?: boolean })
 
           <div className="relative">
             <FelixMicrocopy message={felixMicrocopy} />
+            {status === "playing" && !!config?.title ? (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                className="pointer-events-none mx-auto mb-2 max-w-xl px-1 text-center"
+              >
+                <p className="font-body text-[11px] font-semibold tracking-[0.16em] text-foreground/70">
+                  {config.title}
+                </p>
+              </motion.div>
+            ) : null}
             <QuizCard
               question={currentQuestion}
               currentIndex={displayQuestionIndex}
